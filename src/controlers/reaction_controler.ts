@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 import { Error_api } from "../middleware/errors/error";
 
-export class Message_controler{
+export class Reaction_controler{
     static async get(req:Request, res:Response, next:NextFunction){
         try{
             res.status(200).json("get")
@@ -14,17 +14,6 @@ export class Message_controler{
         }
     }
     static async getAll(req:Request, res:Response, next:NextFunction){
-        try{
-            res.status(200).json("get")
-        }
-        catch (e)
-        {
-            console.log(e);
-            next(Error_api.serverError());
-            return;
-        }
-    }
-    static async getAllInChat(req:Request, res:Response, next:NextFunction){
         try{
             res.status(200).json("get")
         }
