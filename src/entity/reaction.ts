@@ -1,6 +1,6 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Message } from "./message";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Reaction_message } from "./reation_message";
+import { User } from "./user";
 
 
 @Entity()
@@ -13,4 +13,7 @@ export class Reaction{
 
     @Column()
     img!:string
+
+    @ManyToOne(()=>User, (user)=>user.reaction_author)
+    author!:User
 }

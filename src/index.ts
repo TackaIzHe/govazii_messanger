@@ -1,6 +1,6 @@
 import Express from "express"
 import { DbContext } from "./database/db";
-import index_middleware from "./middleware/index"
+import setMiddleware from "./middleware/index"
 import index_router from "./routers/index"
 
 const app = Express();
@@ -11,7 +11,7 @@ app.use(Express.json());
 
 app.use(index_router)
 
-app.use(index_middleware)
+setMiddleware(app)
 
 DbContext.initialize()
 .then(()=>{

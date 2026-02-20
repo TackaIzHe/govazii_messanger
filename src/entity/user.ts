@@ -3,11 +3,15 @@ import { Message } from "./message";
 import { Role } from "../objects/enams";
 import { Chat_user } from "./chat_user";
 import { Review } from "./review";
+import { Reaction } from "./reaction";
 
 @Entity()
 export class User{
     @PrimaryGeneratedColumn()
     id!:number
+
+    @Column()
+    ava!:string
 
     @Column()
     name!:string
@@ -34,5 +38,8 @@ export class User{
 
     @OneToMany(()=>Review, (review)=>review.wall)
     reviews!:Review[]
+
+    @OneToMany(()=>Reaction, (reaction)=>reaction.author)
+    reaction_author!: Reaction[]
 
 }
