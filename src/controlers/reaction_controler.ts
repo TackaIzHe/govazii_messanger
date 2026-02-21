@@ -47,6 +47,7 @@ export class Reaction_controler{
     }
     static async post(req:Request, res:Response, next:NextFunction){
         try{
+            
             res.status(201).json("get")
         }
         catch (e)
