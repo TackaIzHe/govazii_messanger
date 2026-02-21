@@ -2,6 +2,9 @@ import { Response, Request, NextFunction } from "express";
 import { Error_api } from "../middleware/errors/error";
 import { DbContext } from "../database/db";
 import { User } from "../entity/user";
+import { compare, crypt } from "../middleware/bcrypt";
+import { create_jwt, verify_jwt } from "../middleware/create_jwt";
+import { Jwt_payload } from "../objects/jwt_payload";
 
 
 
@@ -134,7 +137,25 @@ export class User_controler{
 
     static async reg(req:Request, res:Response, next:NextFunction){
         try{
-            res.status(200).json("reg")
+            const {name, email, password} = req.body;
+            
+            if (
+                !email || typeof email != "string" ||
+                !password || typeof password != "string" ||
+                !name || typeof name != "string"
+            )
+                return next(Error_api.badData())
+            
+            const userRepo = DbContext.getRepository(User);
+
+            const findEmail = await userRepo.findOne({where:{email:email}})
+            if (findEmail)
+                return next(Error_api.emailExist())
+            const hashPass = await crypt(password)
+            const user = userRepo.create({name:name, email:email, password: hashPass})
+            await userRepo.save(user);
+
+            res.status(201).json("Пользователь зареган")
         }
         catch (e)
         {
@@ -146,7 +167,29 @@ export class User_controler{
 
     static async log(req:Request, res:Response, next:NextFunction){
         try{
-            res.status(200).json("log")
+            const {email, password} = req.body
+
+            if (
+                !email || typeof email != "string" ||
+                !password || typeof password != "string"
+            )
+                return next(Error_api.badData())
+            
+            const userRepo = DbContext.getRepository(User);
+            const findUser = await userRepo.findOne({where:{email:email}})
+            if (!findUser)
+                return next(Error_api.notFound())
+
+            if (!(await compare(password, findUser.password)))
+                return next(Error_api.badTryLogIn())
+
+            res.cookie("Session", create_jwt(
+                new Jwt_payload(findUser.id, findUser.name, findUser.role)), 
+                {
+                    httpOnly:true,
+                    secure:true,
+                    maxAge: 1000 * 60 * 60 * 2
+                })
         }
         catch (e)
         {
@@ -158,7 +201,20 @@ export class User_controler{
 
     static async changPass(req:Request, res:Response, next:NextFunction){
         try{
-            res.status(200).json("cpasswd")
+            const {oldPassword, newPassword} = req.body
+            const {Session} = req.cookies
+
+            const verifyToken = verify_jwt(Session)
+            if (
+                typeof verifyToken != "undefined" ||
+                !Session ||
+                !oldPassword || typeof oldPassword != "string" ||
+                !newPassword || typeof newPassword != "string"
+            )
+                return next(Error_api.badData())
+            
+            
+            res.status(200).json("Пароль изменён")
         }
         catch (e)
         {

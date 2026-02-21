@@ -10,7 +10,9 @@ export class User{
     @PrimaryGeneratedColumn()
     id!:number
 
-    @Column()
+    @Column({
+        default: "defaultAva.png"
+    })
     ava!:string
 
     @Column()

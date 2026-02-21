@@ -29,4 +29,12 @@ export class Error_api extends Error{
     {
         return new Error_api(404, "Not found", log_middleware(0), 0);
     }
+    static emailExist()
+    {
+        return new Error_api(404, "Email exist", log_middleware(0), 0);
+    }
+    static badTryLogIn()
+    {
+        return new Error_api(404, "Куда лезим", log_middleware(3), 3);
+    }
 }
