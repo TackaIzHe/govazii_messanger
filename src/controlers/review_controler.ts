@@ -31,7 +31,7 @@ export class Review_controler{
         try{
             const sqlStr = "select * from review"
             const reviewRepo = DbContext.getRepository(Review)
-            const reviews = await reviewRepo.query(sqlStr)
+            const reviews:Array<Review> = await reviewRepo.query(sqlStr)
 
             if (!reviews)
                 return next(Error_api.notFound())
