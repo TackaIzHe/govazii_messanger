@@ -1,5 +1,6 @@
 # Говяжий Месанджер
 ---
+<<<<<<< Updated upstream
 ### Маршруты
 #### User
 ##### Получить пользователя по id
@@ -7,6 +8,17 @@ Method: `GET`
 
 Path: `/user/:id`
 Response: 
+=======
+## Маршруты
+### User
+#### Получить пользователя по id
+**Method**: `GET`
+
+**Path**: `/user/:id`
+
+**Response**:
+
+>>>>>>> Stashed changes
 	`status: 200`
 ``` json
 	json:
@@ -16,15 +28,21 @@ Response:
 		reviews:Array<Reviews>
 	}
 ```
-Errors:
+**Errors**:
+
 	`badData: {status: 406, json: "Bad Data!!!!"}`
+
 	`notFound: {status: 404, json: "Not found"}`
+	
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
-##### Получить всех пользователей
-Method: `GET`
-Path: `/user/`
-Response:
+#### Получить всех пользователей
+**Method**: `GET`
+
+**Path**: `/user/`
+
+**Response**:
+
 	`status: 200`
 ``` json
 	json:
@@ -37,14 +55,18 @@ Response:
 		...
 	]
 ```
-Errors:
+**Errors**:
+
 	`notFound: {status: 404, json: "Not found"}`
+
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
-##### Регистрация пользователя
-Method: `POST`
-Path: `/user/register`
-Request:
+#### Регистрация пользователя
+**Method**: `POST`
+
+**Path**: `/user/register`
+
+**Request**:
 ``` Body
 	Body:
 	{
@@ -53,17 +75,24 @@ Request:
 		password:string
 	}
 ```
-Response:
+**Response**:
+
 	`status: 201, json: "Пользователь зареган"`
-Errors:
+
+**Errors**:
+
 	`badData: {status: 406, json: "Bad Data!!!!"}`
+	
 	`emailExist: {status: 404, json: "Email exist"}`
+	
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
-##### Авторизация пользователя
-Method: `POST`
-Path: `/user/loggin`
-Request:
+#### Авторизация пользователя
+**Method**: `POST`
+
+**Path**: `/user/loggin`
+
+**Request**:
 ``` Body
 	Body:
 	{
@@ -71,18 +100,26 @@ Request:
 		password:string
 	}
 ```
-Response:
+**Response**:
+	
 	`coockie: {Session: token} Время жизни 2 часа`
-Errors:
+
+**Errors**:
+	
 	`badData: {status: 406, json: "Bad Data!!!!"}`
+	
 	`notFound: {status: 404, json: "Not found"}`
+	
 	`badTryLogIn: {status: 404, json: "Куда лезим"}`
+	
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
-##### Изменение пароля пользователя
-Method: `POST`
-Path: `/user/chang_password`
-Request:
+#### Изменение пароля пользователя
+**Method**: `POST`
+
+**Path**: `/user/chang_password`
+
+**Request**:
 ``` Body
 	Body:
 	{
@@ -91,8 +128,17 @@ Request:
 	}
 ```
 	`cookie: {Session: token}`
-Response:
+
+**Response**:
+
 	`status: 200, json: "Пароль изменён"`
-Errors:
+
+**Errors**:
+
 	`badData: {status: 406, json: "Bad Data!!!!"}`
+<<<<<<< Updated upstream
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
+=======
+
+	`serverError: {status: 500, json: "Internal server error!!!!"}`
+>>>>>>> Stashed changes
