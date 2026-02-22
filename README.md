@@ -1,14 +1,5 @@
 # Говяжий Месанджер
 ---
-<<<<<<< Updated upstream
-### Маршруты
-#### User
-##### Получить пользователя по id
-Method: `GET`
-
-Path: `/user/:id`
-Response: 
-=======
 ## Маршруты
 ### User
 #### Получить пользователя по id
@@ -18,7 +9,6 @@ Response:
 
 **Response**:
 
->>>>>>> Stashed changes
 	`status: 200`
 ``` json
 	json:
@@ -31,9 +21,7 @@ Response:
 **Errors**:
 
 	`badData: {status: 406, json: "Bad Data!!!!"}`
-
 	`notFound: {status: 404, json: "Not found"}`
-	
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Получить всех пользователей
@@ -58,7 +46,6 @@ Response:
 **Errors**:
 
 	`notFound: {status: 404, json: "Not found"}`
-
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Регистрация пользователя
@@ -78,13 +65,10 @@ Response:
 **Response**:
 
 	`status: 201, json: "Пользователь зареган"`
-
 **Errors**:
 
 	`badData: {status: 406, json: "Bad Data!!!!"}`
-	
 	`emailExist: {status: 404, json: "Email exist"}`
-	
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Авторизация пользователя
@@ -103,15 +87,11 @@ Response:
 **Response**:
 	
 	`coockie: {Session: token} Время жизни 2 часа`
-
 **Errors**:
 	
 	`badData: {status: 406, json: "Bad Data!!!!"}`
-	
 	`notFound: {status: 404, json: "Not found"}`
-	
 	`badTryLogIn: {status: 404, json: "Куда лезим"}`
-	
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Изменение пароля пользователя
@@ -128,17 +108,11 @@ Response:
 	}
 ```
 	`cookie: {Session: token}`
-
 **Response**:
 
 	`status: 200, json: "Пароль изменён"`
-
 **Errors**:
 
 	`badData: {status: 406, json: "Bad Data!!!!"}`
-<<<<<<< Updated upstream
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
-=======
-
-	`serverError: {status: 500, json: "Internal server error!!!!"}`
->>>>>>> Stashed changes
+- - -
