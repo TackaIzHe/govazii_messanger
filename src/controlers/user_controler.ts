@@ -111,9 +111,59 @@ export class User_controler{
         }
     }
 
-    static async put(req:Request, res:Response, next:NextFunction){
+    static async setName(req:Request, res:Response, next:NextFunction){
         try{
-            res.status(200).json("put")
+            const {name} = req.body
+            const {Session} = req.cookies
+            const verifyToken = verify_jwt(Session)
+ 
+            if (
+                !Session ||
+                typeof verifyToken == "undefined" ||
+                !name || typeof name != "string"
+            )
+                return next(Error_api.badData())
+
+            const userRepo = DbContext.getRepository(User)
+            const findUser = await userRepo.findOne({where:{id:Session.id}})
+
+            if (!findUser)
+                return next(Error_api.notFound())
+
+            findUser.name = name
+            userRepo.save(findUser)
+
+            res.status(200).json("Имя изменино")
+        }
+        catch (e)
+        {
+            console.log(e);
+            next(Error_api.serverError());
+            return;
+        }
+    }
+
+    static async setAva(req:Request, res:Response, next:NextFunction){
+        try{
+            const {Session} = req.cookies
+            const ava = <Express.Multer.File>req.file
+            const verifyToken = verify_jwt(Session)
+            if (
+                !Session ||
+                typeof verifyToken == "undefined" ||
+                !ava
+            )
+                return next(Error_api.badData())
+
+            const userRepo = DbContext.getRepository(User)
+            const findUser = await userRepo.findOne({where:{id: Session.id}})
+
+            if (!findUser)
+                return next(Error_api.notFound())
+
+            findUser.ava = ava.filename
+            userRepo.save(findUser)
+            res.status(200).json("Ава изменина")
         }
         catch (e)
         {
@@ -125,7 +175,22 @@ export class User_controler{
 
     static async del(req:Request, res:Response, next:NextFunction){
         try{
-            res.status(200).json("del")
+            const {Session} = req.cookies
+            const verifyToken = verify_jwt(Session)
+            if (
+                !Session ||
+                typeof verifyToken == "undefined"
+            )
+                return next(Error_api.badData())
+            
+            const userRepo = DbContext.getRepository(User)
+            const findUser = await userRepo.findOne({where:{id: Session.id}})
+
+            if (!findUser)
+                return next(Error_api.notFound())
+
+            userRepo.remove(findUser)
+            res.status(200).json("Ак удалён")
         }
         catch (e)
         {
@@ -189,7 +254,7 @@ export class User_controler{
                     httpOnly:true,
                     secure:true,
                     maxAge: 1000 * 60 * 60 * 2
-                })
+                }).status(200).json("Авторизован")
         }
         catch (e)
         {
@@ -206,12 +271,25 @@ export class User_controler{
 
             const verifyToken = verify_jwt(Session)
             if (
-                typeof verifyToken != "undefined" ||
+                typeof verifyToken == "undefined" ||
                 !Session ||
                 !oldPassword || typeof oldPassword != "string" ||
                 !newPassword || typeof newPassword != "string"
             )
                 return next(Error_api.badData())
+
+            const userRepo = DbContext.getRepository(User)
+            const findUser = await userRepo.findOne({where:{id:Session.id}})
+
+            if (!findUser)
+                return next(Error_api.notFound())
+
+            if (!(await compare(oldPassword, findUser.password)))
+                return next(Error_api.badTryLogIn())
+
+            const hashPassword = await crypt(newPassword)
+            findUser.password = hashPassword
+            userRepo.save(findUser)
             
             
             res.status(200).json("Пароль изменён")

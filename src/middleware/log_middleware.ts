@@ -42,7 +42,7 @@ const log_middleware = (level: number) => {
                 console.log(`RawTrailers: ${req.rawTrailers}`)
                 console.table(`Route: ${JSON.stringify(req.route, null, 2)}`)
                 console.log(`Secure: ${req.secure}`)
-                console.log(`SignedCookies: ${req.signedCookies}`)
+                // console.log(`SignedCookies: ${req.signedCookies}`)
                 console.table(`Socket: ${JSON.stringify(socketInfo, null, 2)}`)
                 console.log(`Stale: ${req.stale}`)
                 console.log(`Subdomains: ${req.subdomains}`)

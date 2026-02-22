@@ -86,7 +86,8 @@ Request:
 	}
 ```
 Response:
-	
+
+	`status: 200, json: "Авторизован"`
 	`coockie: {Session: token} Время жизни 2 часа`
 Errors:
 	
