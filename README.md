@@ -3,7 +3,8 @@
 ### Маршруты
 #### User
 ##### Получить пользователя по id
-Method: `GET` 
+Method: `GET`
+
 Path: `/user/:id`
 Response: 
 	`status: 200`
