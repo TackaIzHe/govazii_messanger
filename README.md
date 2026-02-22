@@ -2,12 +2,13 @@
 ---
 ## Маршруты
 ### User
+- - -
 #### Получить пользователя по id
-**Method**: `GET`
+Method: `GET`
 
-**Path**: `/user/:id`
+Path: `/user/:id`
 
-**Response**:
+Response:
 
 	`status: 200`
 ``` json
@@ -18,18 +19,18 @@
 		reviews:Array<Reviews>
 	}
 ```
-**Errors**:
+Errors:
 
 	`badData: {status: 406, json: "Bad Data!!!!"}`
 	`notFound: {status: 404, json: "Not found"}`
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Получить всех пользователей
-**Method**: `GET`
+Method: `GET`
 
-**Path**: `/user/`
+Path: `/user/`
 
-**Response**:
+Response:
 
 	`status: 200`
 ``` json
@@ -43,17 +44,17 @@
 		...
 	]
 ```
-**Errors**:
+Errors:
 
 	`notFound: {status: 404, json: "Not found"}`
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Регистрация пользователя
-**Method**: `POST`
+Method: `POST`
 
-**Path**: `/user/register`
+Path: `/user/register`
 
-**Request**:
+Request:
 ``` Body
 	Body:
 	{
@@ -62,21 +63,21 @@
 		password:string
 	}
 ```
-**Response**:
+Response:
 
 	`status: 201, json: "Пользователь зареган"`
-**Errors**:
+Errors:
 
 	`badData: {status: 406, json: "Bad Data!!!!"}`
 	`emailExist: {status: 404, json: "Email exist"}`
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Авторизация пользователя
-**Method**: `POST`
+Method: `POST`
 
-**Path**: `/user/loggin`
+Path: `/user/loggin`
 
-**Request**:
+Request:
 ``` Body
 	Body:
 	{
@@ -84,10 +85,10 @@
 		password:string
 	}
 ```
-**Response**:
+Response:
 	
 	`coockie: {Session: token} Время жизни 2 часа`
-**Errors**:
+Errors:
 	
 	`badData: {status: 406, json: "Bad Data!!!!"}`
 	`notFound: {status: 404, json: "Not found"}`
@@ -95,11 +96,11 @@
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
 #### Изменение пароля пользователя
-**Method**: `POST`
+Method: `POST`
 
-**Path**: `/user/chang_password`
+Path: `/user/chang_password`
 
-**Request**:
+Request:
 ``` Body
 	Body:
 	{
@@ -108,10 +109,10 @@
 	}
 ```
 	`cookie: {Session: token}`
-**Response**:
+Response:
 
 	`status: 200, json: "Пароль изменён"`
-**Errors**:
+Errors:
 
 	`badData: {status: 406, json: "Bad Data!!!!"}`
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
