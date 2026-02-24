@@ -3,28 +3,14 @@
 - - -
 ## Маршруты
 
-### User
+[User](readme_file/user.md)
 - - -
-[user.md](readme_file/user.md)
+[Chat](readme_file/chat.md)
 - - -
-
-### Chat
+[Messages](readme_file/messages.md)
 - - -
-[chat.md](readme_file/chat.md)
+[Reaction](readme_file/reaction.md)
 - - -
-
-### Messages
-- - -
-[messages.md](readme_file/messages.md)
-- - -
-
-### Reaction
-- - -
-[reaction.md](readme_file/reaction.md)
-- - -
-
-### Review
-- - -
-[review.md](readme_file/review.md)
+[Review](readme_file/review.md)
 - - -
 - - -
