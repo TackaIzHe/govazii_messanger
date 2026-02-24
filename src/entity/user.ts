@@ -4,6 +4,7 @@ import { Role } from "../objects/enams";
 import { Chat_user } from "./chat_user";
 import { Review } from "./review";
 import { Reaction } from "./reaction";
+import { Chat } from "./chat";
 
 @Entity()
 export class User{
@@ -28,6 +29,9 @@ export class User{
         default:Role.user
     })
     role!:string
+
+    @OneToMany(()=>Chat, (chats)=>chats.author)
+    chat_host!:Chat[]
 
     @OneToMany(()=>Chat_user, (chat)=>chat.users)
     chats!:Chat_user[]

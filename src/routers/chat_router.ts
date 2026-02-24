@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { Chat_controler } from "../controlers/chat_controler";
+import { uploadImg } from "../middleware/upload_middleware";
+import multer from "multer";
 
 const router = Router();
+const upload = multer({storage:uploadImg("../../static")})
 
 router.get("/:id", (req:Request, res:Response, next:NextFunction)=>{
     Chat_controler.get(req, res, next)
@@ -27,4 +30,11 @@ router.post("/add", (req:Request, res:Response, next:NextFunction)=>{
     Chat_controler.addUser(req, res, next)
 })
 
+router.post("/ser_name", (req:Request, res:Response, next:NextFunction)=>{
+    Chat_controler.setName(req, res, next)
+})
+
+router.post("/set_ava", upload.single('ava'), (req:Request, res:Response, next:NextFunction)=>{
+    Chat_controler.setAva(req, res, next)
+})
 export default router

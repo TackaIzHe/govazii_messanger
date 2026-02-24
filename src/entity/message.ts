@@ -1,7 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, OneToOne, OneToMany} from "typeorm";
 import { User } from "./user";
 import { Chat } from "./chat";
-import { Reaction } from "./reaction";
 import { Reaction_message } from "./reation_message";
 
 @Entity()

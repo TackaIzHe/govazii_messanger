@@ -27,6 +27,7 @@ export class User_controler{
                 next(Error_api.notFound())
 
             res.status(200).json({
+                id: user?.id,
                 name: user?.name,
                 ava: user?.ava,
                 reviews: user?.reviews
@@ -52,6 +53,7 @@ export class User_controler{
             res.status(200).json(
                 users.map((user)=>{
                     return{
+                        id: user.id,
                         name: user.name,
                         ava: user.ava,
                         reviews: user.reviews
@@ -66,38 +68,6 @@ export class User_controler{
             return;
         }
     }
-
-    // static async getReviews(req:Request, res:Response, next:NextFunction){
-    //     try{
-    //         const {id} = req.params;
-    //         const parseId = Number(id)
-
-    //         if (!id || isNaN(parseId))
-    //             return next(Error_api.badData())
-
-    //         const userRepo = DbContext.getRepository(User)
-    //         const 
-    //         res.status(200).json("post")
-    //     }
-    //     catch (e)
-    //     {
-    //         console.log(e);
-    //         next(Error_api.serverError());
-    //         return;
-    //     }
-    // }
-
-    // static async getReviewsAuthor(req:Request, res:Response, next:NextFunction){
-    //     try{
-    //         res.status(200).json("post")
-    //     }
-    //     catch (e)
-    //     {
-    //         console.log(e);
-    //         next(Error_api.serverError());
-    //         return;
-    //     }
-    // }
     
     static async post(req:Request, res:Response, next:NextFunction){
         try{
@@ -148,6 +118,7 @@ export class User_controler{
             const {Session} = req.cookies
             const ava = <Express.Multer.File>req.file
             const verifyToken = verify_jwt(Session)
+
             if (
                 !Session ||
                 typeof verifyToken == "undefined" ||
@@ -163,6 +134,7 @@ export class User_controler{
 
             findUser.ava = ava.filename
             userRepo.save(findUser)
+
             res.status(200).json("Ава изменина")
         }
         catch (e)
