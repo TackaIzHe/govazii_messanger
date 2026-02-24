@@ -9,6 +9,7 @@ Response:
 ``` json
 	json:
 	{
+		id:number,
 		name:string,
 		ava:string,
 		reviews:Array<Reviews>
@@ -32,6 +33,7 @@ Response:
 	json:
 	[
 		{
+			id:number,
 			name:string,
 			ava:string,
 			reviews:Array<Reviews>
@@ -50,7 +52,7 @@ Method: `POST`
 Path: `/user/register`
 
 Request:
-``` Body
+``` JSON
 	Body:
 	{
 		name:string,
@@ -73,7 +75,7 @@ Method: `POST`
 Path: `/user/loggin`
 
 Request:
-``` Body
+``` JSON
 	Body:
 	{
 		email:string,
@@ -97,7 +99,7 @@ Method: `POST`
 Path: `/user/chang_password`
 
 Request:
-``` Body
+``` JSON
 	Body:
 	{
 		oldPassword:string,
@@ -111,5 +113,66 @@ Response:
 Errors:
 
 	`badData: {status: 406, json: "Bad Data!!!!"}`
+	`serverError: {status: 500, json: "Internal server error!!!!"}`
+- - -
+### Удаление акаунта
+Method: `DELETE`
+
+Path: `/user/`
+
+Request:
+
+	`cookie: {Session: token}`
+Response:
+
+	`status: 200, json: "Ак удалён"`
+Errors:
+
+	`badData: {status: 406, json: "Bad Data!!!!"}`
+	`notFound: {status: 404, json: "Not found"}`
+	`serverError: {status: 500, json: "Internal server error!!!!"}`
+- - -
+### Изменение имени
+Method: `PUT`
+
+Path: `/user/set_name`
+
+Request:
+``` JSON
+	Body:
+	{
+		name:string
+	}
+```
+	`cookie: {Session: token}`
+Response:
+
+	`status: 200, json: "Имя изменино"`
+Errors:
+
+	`badData: {status: 406, json: "Bad Data!!!!"}`
+	`notFound: {status: 404, json: "Not found"}`
+	`serverError: {status: 500, json: "Internal server error!!!!"}`
+- - -
+### Изменение аватарки
+Method: `PUT`
+
+Path: `/user/set_ava`
+
+Request:
+``` JSON
+	Body:
+	{
+		ava:<form-data>File
+	}
+```
+	`coockie: {Session: token}`
+Response:
+
+	`status:200, json: "Ава изменина"`
+Errors:
+
+	`badData: {status: 406, json: "Bad Data!!!!"}`
+	`notFound: {status: 404, json: "Not found"}`
 	`serverError: {status: 500, json: "Internal server error!!!!"}`
 - - -
