@@ -22,7 +22,7 @@ router.put("/set_name", (req:Request, res:Response, next:NextFunction)=>{
     User_controler.setName(req, res, next);
 })
 
-router.put("/set_ava",upload.single('ava'), (req:Request, res:Response, next:NextFunction)=>{
+router.put("/set_ava", upload.single('ava'), (req:Request, res:Response, next:NextFunction)=>{
     User_controler.setAva(req, res, next);
 })
 

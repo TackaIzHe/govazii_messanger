@@ -101,7 +101,7 @@ export class User_controler{
                 return next(Error_api.notFound())
 
             findUser.name = name
-            userRepo.save(findUser)
+            await userRepo.save(findUser)
 
             res.status(200).json("Имя изменино")
         }
@@ -133,7 +133,7 @@ export class User_controler{
                 return next(Error_api.notFound())
 
             findUser.ava = ava.filename
-            userRepo.save(findUser)
+            await userRepo.save(findUser)
 
             res.status(200).json("Ава изменина")
         }
@@ -161,7 +161,7 @@ export class User_controler{
             if (!findUser)
                 return next(Error_api.notFound())
 
-            userRepo.remove(findUser)
+            await userRepo.remove(findUser)
             res.status(200).json("Ак удалён")
         }
         catch (e)
@@ -261,7 +261,7 @@ export class User_controler{
 
             const hashPassword = await crypt(newPassword)
             findUser.password = hashPassword
-            userRepo.save(findUser)
+            await userRepo.save(findUser)
             
             
             res.status(200).json("Пароль изменён")

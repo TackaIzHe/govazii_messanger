@@ -121,7 +121,7 @@ export class Chat_controler{
                     author:findUser
                 })
             
-            chatRepo.save(createChat)
+            await chatRepo.save(createChat)
             res.status(201).json("Чат создан")
         }
         catch (e)
@@ -248,7 +248,7 @@ export class Chat_controler{
                 return next(Error_api.notFound())
 
             findChat.name = name;
-            chatRepo.save(findChat)
+            await chatRepo.save(findChat)
             res.status(200).json("Имя обновлено")
         }
         catch (e)
@@ -286,7 +286,7 @@ export class Chat_controler{
                 return next(Error_api.notFound())
 
             findChat.ava = ava.filename;
-            chatRepo.save(findChat)
+            await chatRepo.save(findChat)
             res.status(200).json("Ава обновлена")
         }
         catch (e)
