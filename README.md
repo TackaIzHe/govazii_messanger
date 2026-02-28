@@ -1,8 +1,10 @@
-# Визуальная часть
+# Говяжий Месанджер
+- - -
+## Визуальная часть
 
 [FRONT-END](FRONT-END/README.md)
 - - -
-# API Сервер
+## API Сервер
 
 [BACK-END](BACK-END/README.md)
 - - -

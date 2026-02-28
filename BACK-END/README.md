@@ -1,5 +1,3 @@
-# Говяжий Месанджер
-
 - - -
 ## Маршруты API для работы с сервером
 
@@ -24,5 +22,11 @@
 ## Структура проекта
 
 [File system](readme_file/filesystem.md)
+- - -
+- - -
+
+## ENV файл
+
+[ENV](readme_file/env_file.md)
 - - -
 - - -
