@@ -2,6 +2,7 @@
 node_modules
 db.sqlite
 .env
+cert
 
 ## FRONT-END
 # dependencies
