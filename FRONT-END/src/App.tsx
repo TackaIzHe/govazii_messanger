@@ -1,9 +1,13 @@
 import React from 'react';
-import Message from './components/Message';
+import LeftPanel from './components/LeftPanel';
+import RightPanel from './components/RightPanel';
 
 function App() {
   return (
-    <Message/>
+    <div className='left_right_panel'>
+      <LeftPanel/>
+      <RightPanel/>
+    </div>
   );
 }
 
