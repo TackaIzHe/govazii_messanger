@@ -7,15 +7,21 @@ import cookieParser from "cookie-parser";
 import fs from "fs"
 import https from "https"
 import path from "path";
+import cors from "cors"
 
 ENV.config({path: __dirname + "/../.env"})
 
 const app = Express();
 const port = process.env.PORT || 20000;
 
+const frontEndHost = process.env.FRONT_HOST || "localhost"
+const frontEndPort = process.env.FRONT_PORT || 45000
+const frontEndProto = process.env.FRONT_PROTO || "http"
+
 app.use(Express.json());
 app.use(cookieParser())
 
+app.use(cors({origin:`${frontEndProto}://${frontEndHost}:${frontEndPort}`}))
 
 app.use(index_router)
 

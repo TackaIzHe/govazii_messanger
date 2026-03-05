@@ -14,7 +14,6 @@
     "init-key": "openssl genrsa -out ./cert/key.pem",
     "init-csr": "openssl req -new -key ./cert/key.pem -out ./cert/csr.pem",
     "init-cert": "openssl x509 -req -days 365 -in ./cert/csr.pem -signkey ./cert/key.pem -out ./cert/cert.pem"
-
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -31,6 +30,7 @@
     "@types/multer": "^2.0.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
