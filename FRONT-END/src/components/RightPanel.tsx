@@ -1,5 +1,6 @@
 import React from "react";
 import Logo from "./Logo";
+import Register from "./Register";
 
 const RightPanel = () => {
     return (
@@ -7,6 +8,7 @@ const RightPanel = () => {
             <Logo height={100} width={100}/>
             <h1>
             </h1>
+            <Register/>
         </div>
     )
 }

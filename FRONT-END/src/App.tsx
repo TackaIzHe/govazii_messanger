@@ -1,4 +1,4 @@
-import React from 'react';
+import ENV from "dotenv"
 import LeftPanel from './components/LeftPanel';
 import RightPanel from './components/RightPanel';
 
