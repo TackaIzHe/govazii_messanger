@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import Form, { Field } from "./Form";
 import axios from "axios";
 import { RegUser } from "./types/IUser";
@@ -9,10 +9,6 @@ const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword]= useState("");
     const [submit, setSubmit]= useState("Регистрация");
-    
-    // useEffect( ()=>{
-    //     fetchVal()
-    // }, [])
     
     const sendRegVal = async(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -34,7 +30,6 @@ const Register = () => {
             const proto = process.env.REACT_APP_API_PROTO || "http";
             const host = process.env.REACT_APP_API_HOST || "localhost";
             const port = process.env.REACT_APP_API_PORT || "2000";
-            console.log(`${proto}://${host}:${port}/user/register123`)
             const res = await axios.post(`${proto}://${host}:${port}/user/register`, sendObj);
             }
         }
@@ -48,7 +43,7 @@ const Register = () => {
     
     return (
         <div>
-            <Form name="register" width={500} height={500} fields={fields} submit={sendRegVal}/>
+            <Form name="register" width={500} height={100} fields={fields} submit={sendRegVal}/>
         </div>
     )
 }
