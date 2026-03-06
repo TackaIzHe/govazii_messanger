@@ -21,9 +21,15 @@ const frontEndProto = process.env.FRONT_PROTO || "http"
 app.use(Express.json());
 app.use(cookieParser())
 
-app.use(cors({origin:`${frontEndProto}://${frontEndHost}:${frontEndPort}`}))
+app.use(cors(
+    {
+        origin:`${frontEndProto}://${frontEndHost}:${frontEndPort}`, 
+        credentials: true
+    }))
 
 app.use(index_router)
+
+app.use(Express.static(__dirname+"/../static"))
 
 setMiddleware(app)
 

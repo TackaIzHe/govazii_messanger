@@ -225,8 +225,46 @@ export class User_controler{
                 {
                     httpOnly:true,
                     secure:true,
-                    maxAge: 1000 * 60 * 60 * 2
+                    sameSite:'lax',
+                    maxAge: 1000 * 60 * 60 * 2,
+                    path:"/"
                 }).status(200).json("Авторизован")
+        }
+        catch (e)
+        {
+            console.log(e);
+            next(Error_api.serverError());
+            return;
+        }
+    }
+
+    static async getAuthInfoAc(req:Request, res:Response, next:NextFunction){
+        try{
+            const {Session} = req.cookies
+            const verifyToken = verify_jwt(Session)
+
+            if (
+                typeof verifyToken == "undefined" || !Session
+            )
+                return next(Error_api.badData())
+
+            const userRepo = DbContext.getRepository(User)
+            const findUser = await userRepo.findOne({where:{id:Session.id}})
+
+            if (!findUser)
+                return next(Error_api.notFound())
+
+            res.cookie("user",
+            {   
+                id: findUser.id,
+                name:findUser.name,
+                ava:findUser.ava,
+                role:findUser.role
+            }, 
+                {
+                    sameSite: 'lax',
+                    path: '/'
+                }).status(200).json("Auth");
         }
         catch (e)
         {

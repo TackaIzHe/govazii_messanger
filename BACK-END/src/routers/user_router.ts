@@ -14,6 +14,10 @@ router.get("/", (req:Request, res:Response, next:NextFunction)=>{
     User_controler.getAll(req, res, next);
 })
 
+router.get("/get/auth_user", (req:Request, res:Response, next:NextFunction)=>{
+    User_controler.getAuthInfoAc(req, res, next);
+})
+
 router.post("/", (req:Request, res:Response, next:NextFunction)=>{
     User_controler.post(req, res, next);
 })
