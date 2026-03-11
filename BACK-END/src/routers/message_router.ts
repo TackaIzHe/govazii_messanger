@@ -7,7 +7,7 @@ router.get("/:id",async (req:Request, res:Response, next:NextFunction)=>{
     Message_controler.get(req, res, next);
 })
 
-router.get("/",async (req:Request, res:Response, next:NextFunction)=>{
+router.get("/get_all/:id",async (req:Request, res:Response, next:NextFunction)=>{
     Message_controler.getAll(req, res, next);
 })
 

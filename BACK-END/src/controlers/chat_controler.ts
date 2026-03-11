@@ -32,12 +32,12 @@ export class Chat_controler{
                 return next(Error_api.notFound())
 
             const existchat = findChat.users.map((chat)=>{
-                if (chat.users.id == Session.id)
+                if (chat.users.id == verifyToken.id)
                     return chat
             })
 
             if (
-                findChat.author.id != Session.id &&
+                findChat.author.id != verifyToken.id &&
                 existchat.length == 0
             )
                 return next(Error_api.notFound())
@@ -70,7 +70,7 @@ export class Chat_controler{
                 return next(Error_api.badData())
             
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id:Session.id}, relations: ["chat_host", "chats"]})
+            const findUser = await userRepo.findOne({where:{id:verifyToken.id}, relations: ["chat_host", "chats"]})
             
             if (!findUser)
                 return next(Error_api.notFound())
@@ -109,7 +109,7 @@ export class Chat_controler{
             )
                 return next(Error_api.badData())
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id:Session.id}})
+            const findUser = await userRepo.findOne({where:{id:verifyToken.id}})
 
             if (!findUser)
                 return next(Error_api.notFound())
@@ -187,13 +187,13 @@ export class Chat_controler{
                 return next(Error_api.notFound())
 
             const existUser = findChat.users.map((chat)=>{
-                if (chat.users.id == Session.id)
+                if (chat.users.id == verifyToken.id)
                     return chat.users
             })
 
             if (
                 existUser.length == 0 ||
-                findChat.author.id != Session.id
+                findChat.author.id != verifyToken.id
             )
                 return next(Error_api.notFound())
 
@@ -244,7 +244,7 @@ export class Chat_controler{
             if (!findChat)
                 return next(Error_api.notFound())
 
-            if (findChat.author.id != Session.id)
+            if (findChat.author.id != verifyToken.id)
                 return next(Error_api.notFound())
 
             findChat.name = name;
@@ -282,7 +282,7 @@ export class Chat_controler{
             if (!findChat)
                 return next(Error_api.notFound())
 
-            if (findChat.author.id != Session.id)
+            if (findChat.author.id != verifyToken.id)
                 return next(Error_api.notFound())
 
             findChat.ava = ava.filename;

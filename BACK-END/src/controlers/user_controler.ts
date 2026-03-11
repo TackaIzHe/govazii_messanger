@@ -95,7 +95,7 @@ export class User_controler{
                 return next(Error_api.badData())
 
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id:Session.id}})
+            const findUser = await userRepo.findOne({where:{id:verifyToken.id}})
 
             if (!findUser)
                 return next(Error_api.notFound())
@@ -127,7 +127,7 @@ export class User_controler{
                 return next(Error_api.badData())
 
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id: Session.id}})
+            const findUser = await userRepo.findOne({where:{id: verifyToken.id}})
 
             if (!findUser)
                 return next(Error_api.notFound())
@@ -156,7 +156,7 @@ export class User_controler{
                 return next(Error_api.badData())
             
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id: Session.id}})
+            const findUser = await userRepo.findOne({where:{id: verifyToken.id}})
 
             if (!findUser)
                 return next(Error_api.notFound())
@@ -249,7 +249,7 @@ export class User_controler{
                 return next(Error_api.badData())
 
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id:Session.id}})
+            const findUser = await userRepo.findOne({where:{id:verifyToken.id}})
 
             if (!findUser)
                 return next(Error_api.notFound())
@@ -289,7 +289,7 @@ export class User_controler{
                 return next(Error_api.badData())
 
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id:Session.id}})
+            const findUser = await userRepo.findOne({where:{id:verifyToken.id}})
 
             if (!findUser)
                 return next(Error_api.notFound())

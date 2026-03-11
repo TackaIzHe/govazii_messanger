@@ -5,6 +5,7 @@ import { Message } from "../entity/message";
 import { verify_jwt } from "../middleware/create_jwt";
 import { Chat } from "../entity/chat";
 import { User } from "../entity/user";
+import { Jwt_payload } from "../objects/jwt_payload";
 
 export class Message_controler{
     static async get(req:Request, res:Response, next:NextFunction){
@@ -46,24 +47,32 @@ export class Message_controler{
             const findChat = await chatRepo.findOne(
                 {
                     where:{id:parseId},
-                    relations: ["message"]
+                    relations: ["messages", "users", "author", "messages.user"]
                 })
 
             if (!findChat)
                 return next(Error_api.notFound())
 
             const existUser = findChat.users.map((user)=>{
-                if (user.users.id == Session.id)
+                if (user.users.id == verifyToken.id)
                     return user
             })
-
+            console.log(existUser)
             if (
-                findChat.author.id != Session.id ||
+                findChat.author.id != verifyToken.id &&
                 existUser.length == 0
             )
                 return next(Error_api.notFound())
-            
-            res.status(200).json(findChat.messages)
+
+            res.status(200).json(findChat.messages.map((x)=>{
+                return {
+                    id:x.id,
+                    value:x.value,
+                    userId:x.user.id,
+                    userAva:x.user.ava,
+                    userName:x.user.name
+                }
+            }))
         }
         catch (e)
         {
@@ -108,7 +117,7 @@ export class Message_controler{
             const messageRepo = DbContext.getRepository(Message)
 
             const findUser = await userRepo.findOne({where:
-                {id:Session.id}})
+                {id:verifyToken.id}})
 
             if (!findUser)
                 return next(Error_api.notFound())
@@ -159,7 +168,7 @@ export class Message_controler{
             if (!findMessage)
                 return next(Error_api.notFound())
             
-            if (findMessage.user.id != Session.id)
+            if (findMessage.user.id != verifyToken.id)
                 return next(Error_api.notFound())
 
             findMessage.value = newValue;
@@ -196,7 +205,7 @@ export class Message_controler{
             if (!findMessage)
                 return next(Error_api.notFound())
 
-            if (findMessage.user.id != Session.id)
+            if (findMessage.user.id != verifyToken.id)
                 return next(Error_api.notFound())
 
             await messageRepo.remove(findMessage)

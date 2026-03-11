@@ -17,6 +17,6 @@ export class Message{
     @ManyToOne(() => User, (user) => user.messages)
     user!:User
 
-    @OneToOne(() => Chat, (chat) => chat.messages)
+    @ManyToOne(() => Chat, (chat) => chat.messages)
     chat!:Chat
 }
