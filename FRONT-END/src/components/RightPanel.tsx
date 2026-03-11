@@ -3,19 +3,24 @@ import Logo from "./Logo";
 import Form, { Field } from "./Form";
 import axios from "axios";
 import { CreateChat } from "./types/IChat";
+import { AppProps } from "../App";
+import ChatSpace from "./ChatSpace";
 
-export interface RightPanelProps{
-    createChat: number
-    createChatState: React.Dispatch<React.SetStateAction<number>>
-    createChatEvent: number
-    createChatEventState: React.Dispatch<React.SetStateAction<number>>
-}
+// export interface RightPanelProps{
+//     createChat: number
+//     createChatState: React.Dispatch<React.SetStateAction<number>>
+//     createChatEvent: number
+//     createChatEventState: React.Dispatch<React.SetStateAction<number>>
+// }
 
-const RightPanel: FC<RightPanelProps> = ({
+const RightPanel: FC<AppProps> = ({
     createChat,
-    createChatState,
     createChatEvent,
-    createChatEventState
+    createMessage,
+    createMessageEvent,
+    switchAll,
+    chatId,
+    chatMessage
 }) => {
     const [name, setName] = useState("");
     const [submit, setSubmit] = useState("Создать чат");
@@ -38,7 +43,7 @@ const RightPanel: FC<RightPanelProps> = ({
                     name:name
                 }
                 const req = await axios.post(`${proto}://${host}:${port}/chat/`, sendObj, {withCredentials:true})
-                createChatEventState(createChatEvent == 0 ? 1 : 0)
+                createChatEvent[1](createChatEvent[0] == 0 ? 1 : 0)
             }
         }
         catch (e){
@@ -52,12 +57,17 @@ const RightPanel: FC<RightPanelProps> = ({
         ]
     return (
         <div className="right_panel">
-            <Logo height={100} width={100}/>
-            {createChat == 1?
+            {createChat[0] == 1?
             (<div className="createChat">
                 <Form name="createChat" width={500} height={100} fields={fields} submit={sendRequestCreateChat}/>
             </div>)
             :""}
+            {createMessage[0] == 1?
+            (<div>
+                <ChatSpace chatId={chatId[0]} messageList={chatMessage[0]}/>
+            </div>)
+            :""
+            }
         </div>
     )
 }
