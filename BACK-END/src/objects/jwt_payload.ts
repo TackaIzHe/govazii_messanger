@@ -1,4 +1,10 @@
-export class Jwt_payload{
+export interface Cookie_info{
+    id:number
+    name:string
+    role:string                             
+}
+
+export class Jwt_payload implements Cookie_info{
     id:number
     name:string
     role:string

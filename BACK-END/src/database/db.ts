@@ -11,7 +11,7 @@ export const DbContext = new DataSource({
     type:'sqlite',
     database:'db.sqlite',
     synchronize: true,
-    logging:true,
+    // logging:true,
     entities:[
         User,
         Message,

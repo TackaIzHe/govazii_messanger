@@ -57,7 +57,7 @@ export class Message_controler{
                 if (user.users.id == verifyToken.id)
                     return user
             })
-            console.log(existUser)
+
             if (
                 findChat.author.id != verifyToken.id &&
                 existUser.length == 0

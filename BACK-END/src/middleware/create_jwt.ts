@@ -11,7 +11,6 @@ export const verify_jwt = (token:string):Jwt_payload | undefined=>{
     const KEY = process.env.SIKRET_KEY || "qwe";
     try{
         const obj = jwt.verify(token, KEY);
-        console.log(obj)
         if 
         (
             typeof obj != 'string' && 
