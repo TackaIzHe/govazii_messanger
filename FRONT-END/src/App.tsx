@@ -5,6 +5,7 @@ import Login from "./components/Login";
 import React, { useState } from 'react';
 import Cookie from 'js-cookie'
 import { MessageProps } from './components/ListMessage';
+import {io, Socket} from "socket.io-client"
 
 export interface AppProps{
   createChat: [number, React.Dispatch<React.SetStateAction<number>>]
@@ -15,6 +16,33 @@ export interface AppProps{
   chatMessage: [MessageProps[], React.Dispatch<React.SetStateAction<MessageProps[]>>]
   switchAll:Function
 }
+const createSocket = () => {
+  interface ServerToClientEvents {
+    'chat message': (msg: string) => void;
+  }
+
+  interface ClientToServerEvents {
+    'chat message': (msg: string) => void;
+  }
+  
+  const proto = process.env.REACT_APP_API_PROTO || "http";
+  const host = process.env.REACT_APP_API_HOST || "localhost";
+  const port = process.env.REACT_APP_API_PORT || "2000";
+  const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(`${proto}://${host}:${port}`, {withCredentials:true})
+  return socket;
+}
+const socket = createSocket()
+
+socket.on('connect',()=>{
+
+    socket.on('chat message', ()=>{
+    })
+
+    socket.on("disconnect", ()=>{
+    })
+});
+
+// socket.emit('chat message', 'Hello world!');
 
 function App() {
   const [state, setState] = useState(0);
