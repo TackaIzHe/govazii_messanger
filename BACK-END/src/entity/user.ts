@@ -48,4 +48,14 @@ export class User{
     @OneToMany(()=>Reaction, (reaction)=>reaction.author)
     reaction_author!: Reaction[]
 
+    @Column({
+        default: ""
+    })
+    socketId!: string
+
+    @Column({
+        default:false
+    })
+    isOnline!: boolean
+
 }

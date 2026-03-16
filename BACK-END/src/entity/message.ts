@@ -19,4 +19,12 @@ export class Message{
 
     @ManyToOne(() => Chat, (chat) => chat.messages)
     chat!:Chat
+
+    @Column({
+        default:new Date().toString()
+    })
+    date!:string
+
+    @OneToMany(() => User, (user) => user.id)
+    readed!:User[]
 }

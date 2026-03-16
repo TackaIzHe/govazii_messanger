@@ -3,11 +3,13 @@ import { Cookie_info } from "../objects/jwt_payload";
 import { User_s_info } from "../objects/socket_obj"
 import https from "https"
 import http from "http"
-import {Server} from "socket.io"
+import {Server, Socket} from "socket.io"
 import { verify_jwt } from "../middleware/create_jwt";
 import setCookieParser from "../middleware/socket_io_cookie_parser";
+import { DbContext } from "../database/db";
+import { User } from "../entity/user";
 
-let onlineUser = new Set<User_s_info>();
+// let onlineUser = new Set<User_s_info>();
 
 export class Socket_controler {
 
@@ -57,7 +59,15 @@ export class Socket_controler {
             if (typeof token == "undefined")
                 return;
             const parseCookie: Cookie_info = token;
-            onlineUser.add({ id: id, cookie: parseCookie })
+            const userRepo = DbContext.getRepository(User)
+            const findUser = await userRepo.findOne({where:{id:parseCookie.id}})
+
+            if (!findUser)
+                return
+            findUser.isOnline = true
+            findUser.socketId = id;
+            await userRepo.save(findUser);
+            // onlineUser.add({ id: id, cookie: parseCookie })
         }
         catch (e) {
             console.log(e)
@@ -71,10 +81,66 @@ export class Socket_controler {
             if (typeof token == "undefined")
                 return;
             const parseCookie: Cookie_info = token;
-            onlineUser.forEach((x)=>{
-                if (x.id == id)
-                    onlineUser.delete(x);
+            const userRepo = DbContext.getRepository(User)
+            const findUser = await userRepo.findOne({where:{id:parseCookie.id}})
+
+            if (!findUser)
+                return
+            findUser.socketId = "";
+            findUser.isOnline = false;
+            await userRepo.save(findUser)
+            // onlineUser.forEach((x)=>{
+            //     if (x.id == id)
+            //         onlineUser.delete(x);
+            // })
+        }
+        catch (e) {
+            console.log(e)
+        }
+    }
+    static async socketEvents(socket:Socket) {
+        try {
+            let mess: string = ""
+            socket.on("chat message", (msg)=>{
+                switch (msg) {
+                    case "sendMess":
+                        mess = ""
+                        break;
+                    case "writeMess":
+                        mess = ""
+                        break;
+                    case "endWriteMess":
+                        mess = ""
+                        break;
+                    case "onlineUsers":
+                        mess = ""                        
+                        break;
+                    case "readMess":
+                        mess = ""
+                        break;
+                
+                    default:
+                        break;
+                }
+                //this.apiSocketEvents(socket, mess);
             })
+        }
+        catch (e) {
+            console.log(e)
+        }
+    }
+    static async apiSocketEvents(socket:Socket, msg: string, userSocketId: string) {
+        try {
+            socket.to(userSocketId).emit("chat message","")
+            // socket.
+        }
+        catch (e) {
+            console.log(e)
+        }
+    }
+    static async setReadedMess(messId: number, userId: number) {
+        try {
+
         }
         catch (e) {
             console.log(e)

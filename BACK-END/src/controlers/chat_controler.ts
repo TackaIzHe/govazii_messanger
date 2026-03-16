@@ -25,7 +25,7 @@ export class Chat_controler{
             const findChat = await chatRepo.findOne(
                 {
                     where:{id:parseId}, 
-                    relations:["user"]
+                    relations:["users", "users.users", "author"]
                 })
 
             if (!findChat)
