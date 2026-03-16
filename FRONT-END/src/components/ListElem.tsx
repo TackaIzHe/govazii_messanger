@@ -8,6 +8,7 @@ export interface ElemProps{
     name: string
     ava: string
     chatId: [number, React.Dispatch<React.SetStateAction<number>>]
+    chatInfo: React.Dispatch<React.SetStateAction<GetChatList>>
     chatMessage: React.Dispatch<React.SetStateAction<MessageProps[]>>
 } 
 
@@ -16,6 +17,7 @@ export interface ListElemProps{
     switchState: [number, React.Dispatch<React.SetStateAction<number>>]
     switchAll: Function
     chatId: [number, React.Dispatch<React.SetStateAction<number>>]
+    chatInfo: React.Dispatch<React.SetStateAction<GetChatList>>
     chatMessage: React.Dispatch<React.SetStateAction<MessageProps[]>>
 }
 
@@ -24,7 +26,8 @@ const Elem: FC<ElemProps> = ({
     name,
     ava,
     chatId,
-    chatMessage
+    chatMessage,
+    chatInfo
 }) => {
     const proto = process.env.REACT_APP_API_PROTO || "http";
     const host = process.env.REACT_APP_API_HOST || "localhost";
@@ -34,6 +37,12 @@ const Elem: FC<ElemProps> = ({
     const getMessage = async(id:number) => {
         const res = await axios.get(`${addr}/message/get_all/${id}`, {withCredentials:true})
         chatMessage(res.data)
+        await getChatInfo(id)
+    }
+
+    const getChatInfo = async(id:number)=>{
+        const res = await axios.get(`${addr}/chat/${id}`, {withCredentials:true})
+        chatInfo(res.data)
     }
     
     return (
@@ -47,13 +56,13 @@ const Elem: FC<ElemProps> = ({
 }
 
 const ListElem: FC<ListElemProps> = ({
-    list, switchState, switchAll, chatId, chatMessage
+    list, switchState, switchAll, chatId, chatMessage, chatInfo
 }) => {
     return (
         <div onClick={()=>{switchAll(switchState)}} style={{overflow:"scroll", height:"70vh"}}>
             {list.map((x, i) => {
                 return (
-                    <Elem key={i} id={x.id} name={x.name} ava={x.ava} chatId={chatId} chatMessage={chatMessage}/>
+                    <Elem key={i} id={x.id} name={x.name} ava={x.ava} chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo}/>
                 )
             })}
         </div>

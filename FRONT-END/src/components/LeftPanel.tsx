@@ -20,7 +20,8 @@ const LeftPanel: FC<AppProps> = ({
     createMessageEvent,
     switchAll,
     chatId,
-    chatMessage
+    chatMessage,
+    chatInfo
 }) => {
 
     useEffect(()=>{
@@ -57,7 +58,7 @@ const LeftPanel: FC<AppProps> = ({
                 Hello world {user.name}
             </h1>
 
-            <ListElem list={chatList?chatList:[]} switchState={createMessage} switchAll={switchAll} chatId={chatId} chatMessage={chatMessage[1]}/>
+            <ListElem list={chatList?chatList:[]} switchState={createMessage} switchAll={switchAll} chatId={chatId} chatMessage={chatMessage[1]} chatInfo={chatInfo[1]}/>
         </div>
     )
 }

@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import Cookie from 'js-cookie'
 import { MessageProps } from './components/ListMessage';
 import {io, Socket} from "socket.io-client"
+import { GetChatList } from './components/types/IChat';
 
 export interface AppProps{
   createChat: [number, React.Dispatch<React.SetStateAction<number>>]
@@ -14,6 +15,7 @@ export interface AppProps{
   createMessageEvent: [number, React.Dispatch<React.SetStateAction<number>>]
   chatId: [number, React.Dispatch<React.SetStateAction<number>>]
   chatMessage: [MessageProps[], React.Dispatch<React.SetStateAction<MessageProps[]>>]
+  chatInfo: [GetChatList, React.Dispatch<React.SetStateAction<GetChatList>>]
   switchAll:Function
 }
 const createSocket = () => {
@@ -52,6 +54,7 @@ function App() {
   const createMessageEvent = useState(0);
   const chatId = useState(0);
   const chatMessage = useState<MessageProps[]>([]);
+  const chatInfo = useState<GetChatList>({id:0,name:"", ava:""})
 
   const switchState = () => {
     setState(state == 0 ? 1 : 0)
@@ -71,10 +74,10 @@ function App() {
         <div className='left_right_panel'>
             <LeftPanel createChat={createChat} createChatEvent={createChatEvent} 
             createMessage={createMessage} createMessageEvent={createMessageEvent} switchAll={switchAllCreate}
-            chatId={chatId} chatMessage={chatMessage}/>
+            chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo}/>
             <RightPanel createChat={createChat} createChatEvent={createChatEvent}
             createMessage={createMessage} createMessageEvent={createMessageEvent} switchAll={switchAllCreate}
-            chatId={chatId} chatMessage={chatMessage}/>
+            chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo}/>
           </div>
         ):
         state == 0 ?(

@@ -2,7 +2,7 @@ import React, { FC, FormEvent, useState } from "react";
 import Logo from "./Logo";
 import Form, { Field } from "./Form";
 import axios from "axios";
-import { CreateChat } from "./types/IChat";
+import { CreateChat, GetChatList } from "./types/IChat";
 import { AppProps } from "../App";
 import ChatSpace from "./ChatSpace";
 
@@ -20,7 +20,8 @@ const RightPanel: FC<AppProps> = ({
     createMessageEvent,
     switchAll,
     chatId,
-    chatMessage
+    chatMessage,
+    chatInfo
 }) => {
     const [name, setName] = useState("");
     const [submit, setSubmit] = useState("Создать чат");
@@ -64,7 +65,7 @@ const RightPanel: FC<AppProps> = ({
             :""}
             {createMessage[0] == 1?
             (<div>
-                <ChatSpace chatId={chatId[0]} messageList={chatMessage[0]}/>
+                <ChatSpace chatId={chatId[0]} messageList={chatMessage[0]} chat={chatInfo[0]}/>
             </div>)
             :""
             }
