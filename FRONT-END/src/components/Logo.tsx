@@ -1,8 +1,9 @@
 import React, { FC } from "react";
 
 interface LogoProps{
-    width: number;
-    height: number
+    width?: number;
+    height?: number
+    _className?:string
     onClickFunc?:Function
 }
 
@@ -10,11 +11,12 @@ const Logo: FC<LogoProps> =
     ({
         width,
         height,
+        _className,
         onClickFunc=()=>{}
     }) => {
     return (
         <div>
-            <img src="favicon.png" style={{width:`${width}px`, height:`${height}px`}} onClick={()=>{onClickFunc()}}/>
+            <img className={_className} src="favicon.png" style={{width:`${width}px`, height:`${height}px`}} onClick={()=>{onClickFunc()}}/>
         </div>
     )
 }

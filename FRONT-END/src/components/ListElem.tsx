@@ -59,7 +59,7 @@ const ListElem: FC<ListElemProps> = ({
     list, switchState, switchAll, chatId, chatMessage, chatInfo
 }) => {
     return (
-        <div onClick={()=>{switchAll(switchState)}} style={{overflow:"scroll", height:"70vh"}}>
+        <div onClick={()=>{switchAll(switchState)}}>
             {list.map((x, i) => {
                 return (
                     <Elem key={i} id={x.id} name={x.name} ava={x.ava} chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo}/>

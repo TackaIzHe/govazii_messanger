@@ -17,10 +17,11 @@ export interface AppProps{
   chatMessage: [MessageProps[], React.Dispatch<React.SetStateAction<MessageProps[]>>]
   chatInfo: [GetChatList, React.Dispatch<React.SetStateAction<GetChatList>>]
   switchAll:Function
+  socket: Socket
 }
 const createSocket = () => {
   interface ServerToClientEvents {
-    'chat message': (msg: string) => void;
+    "roomMsg": (msg: string) => void;
   }
 
   interface ClientToServerEvents {
@@ -36,15 +37,21 @@ const createSocket = () => {
 const socket = createSocket()
 
 socket.on('connect',()=>{
-
-    socket.on('chat message', ()=>{
-    })
-
-    socket.on("disconnect", ()=>{
-    })
+  
+  socket.on("disconnect", ()=>{
+  })
+  
 });
 
-// socket.emit('chat message', 'Hello world!');
+socket.onAny((msg, asd)=>{
+  if (msg.includes("room"))
+    console.log(asd)
+  else  
+    console.log(msg)
+
+  alert(asd)
+})
+
 
 function App() {
   const [state, setState] = useState(0);
@@ -74,10 +81,10 @@ function App() {
         <div className='left_right_panel'>
             <LeftPanel createChat={createChat} createChatEvent={createChatEvent} 
             createMessage={createMessage} createMessageEvent={createMessageEvent} switchAll={switchAllCreate}
-            chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo}/>
+            chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo} socket={socket}/>
             <RightPanel createChat={createChat} createChatEvent={createChatEvent}
             createMessage={createMessage} createMessageEvent={createMessageEvent} switchAll={switchAllCreate}
-            chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo}/>
+            chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo} socket={socket}/>
           </div>
         ):
         state == 0 ?(

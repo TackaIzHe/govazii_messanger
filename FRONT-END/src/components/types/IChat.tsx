@@ -11,6 +11,11 @@ export interface CreateChat{
     name: string
 }
 
+export interface InviteUser{
+    id:number
+    userId:number
+}
+
 export interface GetChatList{
     id: number
     name: string
