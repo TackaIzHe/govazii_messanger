@@ -8,9 +8,15 @@ import { verify_jwt } from "../middleware/create_jwt";
 import setCookieParser from "../middleware/socket_io_cookie_parser";
 import { DbContext } from "../database/db";
 import { User } from "../entity/user";
+import { Chat } from "../entity/chat";
 
-// let onlineUser = new Set<User_s_info>();
-
+enum EEventString {
+    ESendMess     = "send_mess",
+    EWriteMess    = "writeMess",
+    EEndWriteMess = "endWriteMess",
+    EOnlineUser   = "onlineUsers",
+    EReadMess     = "readMess"
+}
 export class Socket_controler {
 
     static async setSocket(server: https.Server | http.Server) {
@@ -37,14 +43,12 @@ export class Socket_controler {
                 
                 const {Session} = req.cookies;
                 this.addOnlineUser(socket.id, Session)
+                this.connectToRooms(socket, Session)
                 
                 socket.on("disconnect", () => {
                     this.delOnlineUser(socket.id, Session)
                 })
-                
-                socket.on('chat message', (msg) => {
-                    // console.log(msg)
-                })
+                this.socketEvents(socket)
             })
         }
         catch (e) {
@@ -101,43 +105,63 @@ export class Socket_controler {
     static async socketEvents(socket:Socket) {
         try {
             let mess: string = ""
-            socket.on("chat message", (msg)=>{
+            socket.on("chat message", (msg:EEventString, val:string|number, text:string)=>{
                 switch (msg) {
-                    case "sendMess":
+                    case EEventString.ESendMess:
+                        this.sendMessageForGroup(socket, val, text);
+                        break;
+                    case EEventString.EWriteMess:
                         mess = ""
                         break;
-                    case "writeMess":
+                    case EEventString.EEndWriteMess:
                         mess = ""
                         break;
-                    case "endWriteMess":
-                        mess = ""
-                        break;
-                    case "onlineUsers":
+                    case EEventString.EOnlineUser:
                         mess = ""                        
                         break;
-                    case "readMess":
+                    case EEventString.EReadMess:
                         mess = ""
                         break;
                 
                     default:
                         break;
                 }
-                //this.apiSocketEvents(socket, mess);
             })
         }
         catch (e) {
             console.log(e)
         }
     }
-    static async apiSocketEvents(socket:Socket, msg: string, userSocketId: string) {
-        try {
-            socket.to(userSocketId).emit("chat message","")
-            // socket.
-        }
-        catch (e) {
-            console.log(e)
+
+    static async connectToRooms(socket:Socket, session:string|undefined) {
+        if (typeof session == "undefined")
+                return;
+        const token = verify_jwt(session)
+        if (typeof token == "undefined")
+            return;
+        const parseCookie: Cookie_info = token;
+        const userRepo = DbContext.getRepository(User)
+        const findUser = await userRepo.findOne({where:{id:parseCookie.id}, relations: ["chats","chats.chats", "chat_host"]})
+        if (findUser) {
+            findUser.chats.map((x)=>{
+                const room = `room-${x.chats.id}`
+                socket.join(room)
+            })
+            if (findUser.chat_host)
+                findUser.chat_host.map((x)=>{
+                    console.log(x.id);
+                    const room = `room-${x.id}`
+                    socket.join(room)
+                })
         }
     }
+
+    static async sendMessageForGroup(socket:Socket, msg:string|number, val:string) {
+        console.log(`room-${msg}`)
+        const room = `room-${msg}`;
+        socket.in(room).emit(room, val)
+    }
+
     static async setReadedMess(messId: number, userId: number) {
         try {
 

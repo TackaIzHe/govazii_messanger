@@ -13,7 +13,7 @@ export class Chat_controler{
             const {Session} = req.cookies
             const parseId = Number(id)
             const verifyToken = verify_jwt(Session)
-
+	    
             if (
                 !id || isNaN(parseId) ||
                 !Session || 
@@ -70,7 +70,7 @@ export class Chat_controler{
                 return next(Error_api.badData())
             
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id:verifyToken.id}, relations: ["chat_host", "chats"]})
+            const findUser = await userRepo.findOne({where:{id:verifyToken.id}, relations: ["chat_host", "chats", "chats.chats"]})
             
             if (!findUser)
                 return next(Error_api.notFound())
@@ -122,6 +122,13 @@ export class Chat_controler{
                 })
             
             await chatRepo.save(createChat)
+            if (findUser.chat_host != undefined)
+                findUser.chat_host.concat(Array(createChat))
+            else
+                findUser.chat_host = Array(createChat);
+
+            userRepo.save(findUser)
+            console.log(createChat)
             res.status(201).json("Чат создан")
         }
         catch (e)
@@ -173,27 +180,26 @@ export class Chat_controler{
             const findUser = await userRepo.findOne(
                 {
                     where:{id:parseIdUser},
-                    relations:["chats"]
+                    relations:["chats", "chats.chats"]
                 })
 
             const chatRepo = DbContext.getRepository(Chat)
             const findChat = await chatRepo.findOne(
                 {
                     where:{id:parseId}, 
-                    relations:["users"]
+                    relations:["users", "users.users", "author"]
                 })
-            
+
             if (!findUser || !findChat)
                 return next(Error_api.notFound())
-
             const existUser = findChat.users.map((chat)=>{
-                if (chat.users.id == verifyToken.id)
+                if (chat.users.id == parseIdUser)
                     return chat.users
             })
-
+            console.log(existUser)
             if (
-                existUser.length == 0 ||
-                findChat.author.id != verifyToken.id
+                existUser.length != 0 ||
+                findChat.author.id == parseIdUser
             )
                 return next(Error_api.notFound())
 

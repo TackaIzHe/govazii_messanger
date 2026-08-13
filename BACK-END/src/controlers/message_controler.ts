@@ -47,7 +47,7 @@ export class Message_controler{
             const findChat = await chatRepo.findOne(
                 {
                     where:{id:parseId},
-                    relations: ["messages", "users", "author", "messages.user"]
+                    relations: ["messages", "users", "users.users", "author", "messages.user"]
                 })
 
             if (!findChat)
