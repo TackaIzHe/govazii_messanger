@@ -109,7 +109,7 @@ export class Chat_controler{
             )
                 return next(Error_api.badData())
             const userRepo = DbContext.getRepository(User)
-            const findUser = await userRepo.findOne({where:{id:verifyToken.id}})
+            const findUser = await userRepo.findOne({where:{id:verifyToken.id}, relations: ["chat_host"]})
 
             if (!findUser)
                 return next(Error_api.notFound())
@@ -122,10 +122,7 @@ export class Chat_controler{
                 })
             
             await chatRepo.save(createChat)
-            if (findUser.chat_host != undefined)
-                findUser.chat_host.concat(Array(createChat))
-            else
-                findUser.chat_host = Array(createChat);
+            findUser.chat_host.push(createChat)
 
             userRepo.save(findUser)
             console.log(createChat)
