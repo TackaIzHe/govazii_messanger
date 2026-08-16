@@ -30,16 +30,18 @@ const Field: FC<Field> = ({
     {
         return (
             <div>
-            <input name={`${name}`} type={`${type}`} value={value} onChange={updateVal} onClick={onClick}/>
-        </div>
+                <label>{name}</label>
+                <br/>
+                <input name={`${name}`} type={`${type}`} value={value} onChange={updateVal} onClick={onClick}/>
+            </div>
         )
     }
     else
     {
         return (
             <div>
-            <input name={`${name}`} type={`${type}`} value={value} onChange={updateVal}/>
-        </div>
+                <input name={`${name}`} type={`${type}`} value={value} onChange={updateVal}/>
+            </div>
         )
     }
 
@@ -54,7 +56,7 @@ const Form: FC<FormProps> = ({
 }) => {
     return (
         <div>
-            <form onSubmit={submit} name={`${name}`} style={{width:`${width}px`, height:`${height}px`}}>
+            <form onSubmit={submit} name={`${name}`}>
                 {
                     fields.map((x,i)=> { 
                         return (

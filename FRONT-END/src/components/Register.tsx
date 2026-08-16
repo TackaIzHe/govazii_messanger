@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import Form, { Field } from "./Form";
-import axios from "axios";
+import axios, { HttpStatusCode } from "axios";
 import { RegUser } from "./types/IUser";
 
 
@@ -16,21 +16,34 @@ const Register = () => {
     }
     
     const fetchVal = async() =>{
-        if (
-            name.length != 0 ||
-            email.length != 0 ||
-            password.length != 0
-        )
-        {
-            const sendObj:RegUser = {
-                name:name,
-                email:email,
-                password:password
+        try {
+            if (
+                name.length == 0 ||
+                email.length == 0 ||
+                password.length == 0
+            )
+            {
+                throw new Error("не заполнены поля");
             }
+        }
+        catch(e) {
+            alert(e)
+            return;
+        }
+
+        const sendObj:RegUser = {
+            name:name,
+            email:email,
+            password:password
+        }
             const proto = process.env.REACT_APP_API_PROTO || "http";
             const host = process.env.REACT_APP_API_HOST || "localhost";
             const port = process.env.REACT_APP_API_PORT || "2000";
-            const res = await axios.post(`${proto}://${host}:${port}/user/register`, sendObj);
+            try {
+                await axios.post(`${proto}://${host}:${port}/user/register`, sendObj)
+            }
+            catch {
+                alert("Ошбка регистрации")
             }
         }
 

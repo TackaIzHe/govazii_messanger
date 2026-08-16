@@ -22,7 +22,8 @@ const RightPanel: FC<AppProps> = ({
     chatId,
     chatMessage,
     chatInfo,
-    socket
+    socket,
+    panel_ref
 }) => {
     const [name, setName] = useState("");
     const [submit, setSubmit] = useState("Создать чат");
@@ -93,7 +94,7 @@ const RightPanel: FC<AppProps> = ({
             {name:"submit_button", type:"submit", value:submit, setVal:setSubmit, onClick: undefined}
         ]
     return (
-        <div className="right_panel">
+        <div className="right_panel" ref={panel_ref}>
             <div>
                 <ChatSpace chatId={chatId[0]} messageList={chatMessage[0]} chat={chatInfo[0]} socket={socket}/>
             </div>

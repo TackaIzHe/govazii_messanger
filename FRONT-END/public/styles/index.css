@@ -6,7 +6,11 @@
 
 .left_right_panel{
     display: grid;
-    grid-template-columns: 30% 70%;
+    width: 100vh;
+    height: 100vh;
+    grid-template-columns: 30vw 70vw;
+    animation-duration: 1s;
+    animation-direction: alternate;
 } 
 
 .left_panel{
@@ -16,15 +20,81 @@
     border-width: 2px;
     border-color: black;
     border-style: solid;
+
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: 10vh 1fr auto;
+
+    .left {
+        grid-column: 1;
+        margin: 1vh;
+        height: 8vh;
+        width:  8vh;
+        border-radius: 100vh;
+    }
+
+    .center {
+        grid-column: 2;
+    }
+
+    .right {
+        grid-column: 3;
+        height: 8vh;
+        width:  8vh;
+    }
+
+    img {
+      margin: 1vh;
+      height: 10vh;
+      width: 10vh;
+      border-radius: 100vh;
+    }
+
+    .hiden_button {
+      width: 10vh;
+      height: 10vh;
+      grid-row: 3;
+      margin: 1vh;
+      border-radius: 100vh;
+      font-size: 4vh;
+    }
+
+    h1 {
+      margin: 0 0 0 1vh;
+    }
 }
 
-.elem_chat_list{
-    background: #f0f8ff;      /* Light blue background */
-    border: 2px solid #87ceeb; /* Light blue border */
-    border-radius: 12px;       /* Rounded corners */
-    padding: 1rem 1.5rem;
-    font-family: Arial, sans-serif;
-    font-size: 1rem;
-    color: #333;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.right_panel {
+}
+
+@keyframes slidein {
+  from {
+    grid-template-columns: 30vw 70vw;
+  }
+
+  to {
+    grid-template-columns: 6.2vw 93.8vw;
+  }
+}
+
+@keyframes slideout {
+  from {
+    grid-template-columns: 6.2vw 93.8vw;
+  }
+
+  to {
+    grid-template-columns: 30vw 70vw;
+  }
+}
+
+  .chat_elem {
+      display: flex;
+  }
+
+  .chat_list {
+    height: 65vh;
+    max-width: 50vh;
+    /* width: 100vh; */
+    overflow-y: auto;
+    overflow-x: hidden;
   }

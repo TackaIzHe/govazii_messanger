@@ -1,0 +1,42 @@
+:root {
+    --background_color: #679ED2;
+    --background_color_div: #4169E1;
+    --background_color_input: #699Ef2;
+}
+
+.Body {
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--background_color);
+    justify-content: center ;
+    align-items: center;
+    display: flex;
+}
+ 
+.LoginAuth {
+    background-color: var(--background_color_div);
+    border-radius: 10vh;
+    width: 100vh;
+    height: 60vh;
+    display: grid;
+    grid-template-rows: auto;
+    grid-template-columns: auto;
+    justify-content: center;
+    align-items: center;
+    input {
+        width: 50vh;
+        height: 5vh;
+        border-radius: 10vh;
+        margin: 1vh;
+        background-color: var(--background_color_input);
+    }
+    button {
+        width: 50vh;
+        height: 5vh;
+        border-radius: 10vh;
+        margin: 1vh;
+        background-color: var(--background_color);
+    }
+}
+
+

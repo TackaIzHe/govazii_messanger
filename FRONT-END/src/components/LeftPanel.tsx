@@ -1,9 +1,9 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
 import { parseUserCookie } from "./types/IUser";
 import ListElem, { ListElemProps } from "./ListElem";
 import axios from "axios";
-import { GetChatList } from "./types/IChat";
+import { DialogList, GetChatList } from "./types/IChat";
 import { AppProps } from "../App";
 
 // export interface LeftPanelProps{
@@ -21,7 +21,10 @@ const LeftPanel: FC<AppProps> = ({
     switchAll,
     chatId,
     chatMessage,
-    chatInfo
+    chatInfo,
+    panel_ref,
+    hiden_func,
+    dialog_ref_array
 }) => {
 
     useEffect(()=>{
@@ -44,21 +47,25 @@ const LeftPanel: FC<AppProps> = ({
         {
             console.log(e)
         }    
-    }    
+    }
 
     const user = parseUserCookie()
-    return (
-        <div className="left_panel" style={{display: "inline-block"}}>
-            <div style={{display:"flex", justifyContent: "space-between"}}>
-                <Logo height={100} width={100}/>
-                <button style={{width:"100px", margin:"10px"}} onClick={()=>{switchAll(createChat)}}>Создать группу</button>
-            </div>
-            <img style={{width:100, height:100}} src={`${proto}://${host}:${port}/${user.ava}`}></img>
-            <h1>
-                Hello world {user.name}
-            </h1>
 
-            <ListElem list={chatList?chatList:[]} switchState={createMessage} switchAll={switchAll} chatId={chatId} chatMessage={chatMessage[1]} chatInfo={chatInfo[1]}/>
+    const show_close = () => {
+        if (!dialog_ref_array.current[DialogList.Ecreate_chat].open)
+            dialog_ref_array.current[DialogList.Ecreate_chat].show()
+        else
+            dialog_ref_array.current[DialogList.Ecreate_chat].close()
+    }
+    return (
+        <div className="left_panel" ref={panel_ref}>
+                <Logo _className="left"/>
+                <button className="right" onClick={()=>{show_close()}}>Создать группу</button>
+            <div>
+                <img src={`${proto}://${host}:${port}/${user.ava}`}></img>
+                <ListElem _classname="chat_list" list={chatList?chatList:[]} switchState={createMessage} switchAll={switchAll} chatId={chatId} chatMessage={chatMessage[1]} chatInfo={chatInfo[1]}/>
+            </div>
+            <button className="hiden_button" onClick={()=>hiden_func()}>{"<->"}</button>
         </div>
     )
 }

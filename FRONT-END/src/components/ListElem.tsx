@@ -7,6 +7,7 @@ export interface ElemProps{
     id: number
     name: string
     ava: string
+    _classname?:string
     chatId: [number, React.Dispatch<React.SetStateAction<number>>]
     chatInfo: React.Dispatch<React.SetStateAction<GetChatList>>
     chatMessage: React.Dispatch<React.SetStateAction<MessageProps[]>>
@@ -14,6 +15,7 @@ export interface ElemProps{
 
 export interface ListElemProps{
     list: GetChatList[]
+    _classname?: string
     switchState: [number, React.Dispatch<React.SetStateAction<number>>]
     switchAll: Function
     chatId: [number, React.Dispatch<React.SetStateAction<number>>]
@@ -47,8 +49,8 @@ const Elem: FC<ElemProps> = ({
     
     return (
         <div>
-            <div style={{display:"flex", margin: 10}} onClick={()=>{getMessage(id); chatId[1](id)}}>
-                <img key={id} src={`${addr}/${ava}`} style={{width:100, height:100}}></img>
+            <div className="chat_elem" onClick={()=>{getMessage(id); chatId[1](id)}}>
+                <img key={id} src={`${addr}/${ava}`}></img>
                 <h2>{name}</h2>
             </div>
         </div>
@@ -56,10 +58,10 @@ const Elem: FC<ElemProps> = ({
 }
 
 const ListElem: FC<ListElemProps> = ({
-    list, switchState, switchAll, chatId, chatMessage, chatInfo
+    list, switchState, switchAll, chatId, chatMessage, chatInfo, _classname
 }) => {
     return (
-        <div onClick={()=>{switchAll(switchState)}}>
+        <div className={_classname} onClick={()=>{switchAll(switchState)}}>
             {list.map((x, i) => {
                 return (
                     <Elem key={i} id={x.id} name={x.name} ava={x.ava} chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo}/>

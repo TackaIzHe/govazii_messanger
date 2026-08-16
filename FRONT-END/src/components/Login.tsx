@@ -43,7 +43,7 @@ const Login:FC<LoginProps> = ({
             }
             catch(e)
             {
-                console.log(e);
+                alert("Ошибка авторизации")
             }
         }
     }

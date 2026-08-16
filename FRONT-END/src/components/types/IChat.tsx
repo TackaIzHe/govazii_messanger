@@ -21,3 +21,10 @@ export interface GetChatList{
     name: string
     ava: string
 }
+
+export enum DialogList {
+    Ecreate_chat = 0,
+    Eadd_user_to_chat = 1,
+    Eopen_setings,
+    Eopen_profile
+}
