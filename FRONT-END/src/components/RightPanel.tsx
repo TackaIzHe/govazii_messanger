@@ -23,7 +23,8 @@ const RightPanel: FC<AppProps> = ({
     chatMessage,
     chatInfo,
     socket,
-    panel_ref
+    panel_ref,
+    dialog_ref_array
 }) => {
     const [name, setName] = useState("");
     const [submit, setSubmit] = useState("Создать чат");
@@ -81,22 +82,11 @@ const RightPanel: FC<AppProps> = ({
             console.log(e)
         }
     }
-    // форма для создания чата
-    const fields_create_chat:Field[] = [
-            {name:"name", type:"text", value:name, setVal:setName, onClick: ()=>{}},
-            {name:"submit_button", type:"submit", value:submit, setVal:setSubmit, onClick: undefined}
-        ]
 
-    // форма для отправки инвайта в чат
-    const fields_invite_user:Field[] = [
-            {name:"id", type:"text", value:id, setVal:setId, onClick: ()=>{}},
-            {name:"userId", type:"text", value:userId, setVal:setUserId, onClick: ()=>{}},
-            {name:"submit_button", type:"submit", value:submit, setVal:setSubmit, onClick: undefined}
-        ]
     return (
         <div className="right_panel" ref={panel_ref}>
             <div>
-                <ChatSpace chatId={chatId[0]} messageList={chatMessage[0]} chat={chatInfo[0]} socket={socket}/>
+                <ChatSpace chatId={chatId[0]} messageList={chatMessage[0]} chat={chatInfo[0]} socket={socket} dialog_ref_array={dialog_ref_array}/>
             </div>
         </div>
     )

@@ -3,8 +3,9 @@ import React, { ChangeEvent, FC, SubmitEventHandler } from "react";
 export interface Field{
     type: string;
     name: string;
-    value: string;
-    setVal: React.Dispatch<React.SetStateAction<string>>
+    value: string | number;
+    setVal?: React.Dispatch<React.SetStateAction<string>>;
+    numSetVal?: React.Dispatch<React.SetStateAction<number>>;
     onClick: React.MouseEventHandler<HTMLInputElement> | undefined;
 }
 
@@ -21,10 +22,17 @@ const Field: FC<Field> = ({
     name,
     value,
     setVal,
-    onClick
+    onClick,
+    numSetVal
 }) => {
-    const updateVal = (e: ChangeEvent<HTMLInputElement>) =>{
-        setVal(e.target.value);
+    const updateVal = (e: ChangeEvent<HTMLInputElement>) =>{ 
+        if (setVal)
+            setVal(e.target.value);
+
+        if (numSetVal){
+            numSetVal(Number(e.target.value));
+        }
+
     }
     if (onClick !== undefined)
     {
@@ -32,7 +40,9 @@ const Field: FC<Field> = ({
             <div>
                 <label>{name}</label>
                 <br/>
-                <input name={`${name}`} type={`${type}`} value={value} onChange={updateVal} onClick={onClick}/>
+                {type == "nonChang" ? 
+                <input name={`${name}`} type={`${type}`} value={value} onChange={updateVal} onClick={onClick} disabled/> :
+                <input name={`${name}`} type={`${type}`} value={value} onChange={updateVal} onClick={onClick}/> }
             </div>
         )
     }
@@ -60,7 +70,7 @@ const Form: FC<FormProps> = ({
                 {
                     fields.map((x,i)=> { 
                         return (
-                            <Field key={i} type={`${x.type}`} name={`${x.name}`} onClick={x.onClick} value={`${x.value}`} setVal={x.setVal}/>
+                            <Field key={i} type={`${x.type}`} name={`${x.name}`} onClick={x.onClick} value={`${x.value}`} setVal={x.setVal} numSetVal={x.numSetVal}/>
                         )
                     })
                 }

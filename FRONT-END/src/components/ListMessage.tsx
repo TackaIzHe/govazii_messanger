@@ -40,7 +40,9 @@ const ListMessage: FC<ListMessageProps> = ({
 }) => {
     return (
         <div>
-            {list.map((x, i)=>{return (<Message key={i} id={x.id} value={x.value} userId={x.userId} userAva={x.userAva} userName={x.userName}/>)})}
+            {list.map(x => 
+                (<Message key={x.id} id={x.id} value={x.value} userId={x.userId} userAva={x.userAva} userName={x.userName}/>)
+            )}
         </div>
     )
 }

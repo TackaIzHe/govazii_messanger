@@ -6,13 +6,15 @@ import React, { FormEvent, RefObject, SyntheticEvent, useEffect, useRef, useStat
 import Cookie from 'js-cookie'
 import { MessageProps } from './components/ListMessage';
 import {io, Socket} from "socket.io-client"
-import { CreateChat, DialogList, GetChatList } from './components/types/IChat';
+import { CreateChat, DialogList, GetChatList, InviteUser } from './components/types/IChat';
 import Dialog from './components/Dialog';
 import { DialogProp} from './components/Dialog';
 import Logo from './components/Logo';
 import style from "./styles/loginAuthPage.module.css";
 import Form, { Field } from './components/Form';
 import axios from 'axios';
+import { EMsgType, MSG } from './components/Headers/interfaces';
+import { getMessageForId } from './components/API/message';
 
 export interface AppProps{
   createChat: [number, React.Dispatch<React.SetStateAction<number>>]
@@ -46,23 +48,6 @@ const createSocket = () => {
 }
 const socket = createSocket()
 
-socket.on('connect',()=>{
-  
-  socket.on("disconnect", ()=>{
-  })
-  
-});
-
-socket.onAny((msg, asd)=>{
-  if (msg.includes("room"))
-    console.log(asd)
-  else  
-    console.log(msg)
-
-  alert(asd)
-})
-
-
 function App() {
   const [state, setState]     = useState(0);
   const createChat            = useState(0);
@@ -76,14 +61,45 @@ function App() {
   const right_panel_ref       = useRef<HTMLDivElement>(null)
   const left_right_panel_ref  = useRef<HTMLDivElement>(null)
   const create_chat_modal_ref = useRef<HTMLDialogElement>(null)
+  const invite_in_chat_modal_ref = useRef<HTMLDialogElement>(null)
 
-  const dialog_ref_array      = useRef<HTMLDialogElement[]>(new Array())
+  const dialog_ref_array      = useRef<HTMLDialogElement[]>(new Array() as HTMLDialogElement[])
 
   const [create_chat_name, set_create_chat_name] = useState<string>("");
   const [create_chat_submite,set_create_chat_submite] = useState<string>("Создать чат");
 
+  const [invite_usr_id, set_invite_usr_id] = useState<number>(0);
+  const [invite_usr_submite,set_invite_usr_submite] = useState<string>("Пригласить в чат");
+// Сдесь вопрос. Будет ли это коректно работать при условии что он обновляется по условию
   useEffect(()=>{
     set_ref()
+    socket.on('connect',()=>{
+  
+      socket.on("disconnect", ()=>{
+      })
+  
+    });
+
+    socket.onAny(async(msg_type, msg:MSG)=>{
+      switch (msg.type)
+      {
+        case EMsgType.Room:
+        {
+          const mess = await getMessageForId(msg.msg_id);
+          if (typeof mess != 'number')
+          chatMessage[1](prevArray=>([...prevArray, mess]))
+          break;
+        }
+        case EMsgType.Answer:
+        {
+          const mess = await getMessageForId(msg.msg_id);
+          if (typeof mess != 'number')
+          chatMessage[1](prevArray=>([...prevArray, mess]))
+          break;
+        }
+      }
+     
+})
   },[setState])
 
   const switchState = () => {
@@ -113,10 +129,17 @@ function App() {
         }
       }
     }
+    // форма для создания чата
     const create_chat_fields:Field[] = [
-                {name:"chat_name", type:"chat_name", value:create_chat_name, setVal:set_create_chat_name, onClick: ()=>{}},
-                {name:"submit_button", type:"submit", value:create_chat_submite, setVal:set_create_chat_submite, onClick: undefined}
-            ]
+          {name:"chat_name", type:"chat_name", value:create_chat_name, setVal:set_create_chat_name, onClick: ()=>{}},
+          {name:"submit_button", type:"submit", value:create_chat_submite, setVal:set_create_chat_submite, onClick: undefined}
+          ]
+
+    // форма для отправки инвайта в чат
+    const fields_invite_user:Field[] = [
+          {name:"userId", type:"number", value:invite_usr_id, numSetVal:set_invite_usr_id, onClick: ()=>{}},
+          {name:"submit_button", type:"submit", value:invite_usr_submite, setVal:set_invite_usr_submite, onClick: undefined}
+          ]
     const create_chat = (e:FormEvent<HTMLFormElement>) => {
       e.preventDefault()
       if (create_chat_name.length == 0)
@@ -139,9 +162,35 @@ function App() {
       }
     }
 
+    const invite_in_chat = (e:FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      if (!invite_usr_id)
+      {
+        alert("Некоретные данные")
+        return
+      }
+      const sendObj:InviteUser = {
+          id: chatId[0],
+          userId: invite_usr_id,
+      }
+      const proto = process.env.REACT_APP_API_PROTO || "http";
+      const host = process.env.REACT_APP_API_HOST || "localhost";
+      const port = process.env.REACT_APP_API_PORT || "2000";
+      try{
+        axios.post(`${proto}://${host}:${port}/chat/add`, sendObj, {withCredentials:true})
+      }
+      catch(e)
+      {
+          alert("Ошибка отправки приглошения чата")
+      }
+    }
+
     const set_ref = () => {
       if (create_chat_modal_ref.current){
         dialog_ref_array.current.push(create_chat_modal_ref.current);
+      }
+      if (invite_in_chat_modal_ref.current){
+      dialog_ref_array.current.push(invite_in_chat_modal_ref.current);
       }
     }
   
@@ -152,7 +201,7 @@ function App() {
         <div >
           <Dialog classname='create_chat' ref={create_chat_modal_ref}>
             <div>
-              <Form name="auth" width={500} height={100} fields={create_chat_fields} submit={create_chat}/>
+              <Form name="chat" width={500} height={100} fields={create_chat_fields} submit={create_chat}/>
             </div>
           </Dialog>
           <div className='left_right_panel' ref={left_right_panel_ref}>
@@ -160,6 +209,12 @@ function App() {
               createMessage={createMessage} createMessageEvent={createMessageEvent} switchAll={switchAllCreate}
               chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo} socket={socket}
               panel_ref={left_panel_ref} hiden_func={hide} dialog_ref_array={dialog_ref_array}/>
+
+            <Dialog classname='invite_in_chat' ref={invite_in_chat_modal_ref}>
+              <div>
+                <Form name="invite" width={500} height={100} fields={fields_invite_user} submit={invite_in_chat}/>
+              </div>
+            </Dialog>
             <RightPanel createChat={createChat} createChatEvent={createChatEvent}
               createMessage={createMessage} createMessageEvent={createMessageEvent} switchAll={switchAllCreate}
               chatId={chatId} chatMessage={chatMessage} chatInfo={chatInfo} socket={socket}

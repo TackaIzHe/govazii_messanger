@@ -1,9 +1,10 @@
-import { ChangeEvent, FC, FormEvent, useEffect, useState } from "react"
+import { ChangeEvent, FC, FormEvent, RefObject, useEffect, useState } from "react"
 import Logo from "./Logo"
 import axios from "axios";
 import ListMessage, { MessageProps } from "./ListMessage";
-import { GetChatList } from "./types/IChat";
+import { DialogList, GetChatList } from "./types/IChat";
 import { Socket } from "socket.io-client";
+import {MSG, EEventString, EMsgType} from "./Headers/interfaces"
 
 import styles from "../styles/rightPanel.module.css";
 
@@ -12,13 +13,15 @@ export interface ChatSpaceProps {
     chat: GetChatList
     messageList: MessageProps[]
     socket: Socket
+    dialog_ref_array: RefObject<HTMLDialogElement[]>
 }
 
 const ChatSpace: FC<ChatSpaceProps> = ({
     chatId,
     chat,
     messageList,
-    socket
+    socket,
+    dialog_ref_array
 }) => {
     const proto = process.env.REACT_APP_API_PROTO || "http";
     const host = process.env.REACT_APP_API_HOST || "localhost";
@@ -30,13 +33,23 @@ const ChatSpace: FC<ChatSpaceProps> = ({
     }
 
     const submitEvent = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
         try {
+            e.preventDefault()
             const res = await axios.post(`${proto}://${host}:${port}/message`,
                 { id: chatId, value: value },
                 { withCredentials: true })
                 // нужно отпровлять объект что бы коректно отоброжать информацию
-            socket.emit("chat message", "send_mess", chatId, value);
+
+            const msg_id:number = Number((res.data as string).split("-")[1]);
+            const msg:MSG = {
+                user_id: 0,
+                msg_id: msg_id,
+                type: EMsgType.Room,
+                time: new Date(),
+                msg: value,
+                room: chatId
+            }
+            socket.emit("chat message", EEventString.ESendMess, msg);
         }
         catch (e) {
             console.log(e)
@@ -44,6 +57,10 @@ const ChatSpace: FC<ChatSpaceProps> = ({
     }
 
     const openSetings = () => {
+        if (!dialog_ref_array.current[DialogList.Eadd_user_to_chat].open)
+            dialog_ref_array.current[DialogList.Eadd_user_to_chat].show()
+        else
+            dialog_ref_array.current[DialogList.Eadd_user_to_chat].close()
     }
 
     return (
