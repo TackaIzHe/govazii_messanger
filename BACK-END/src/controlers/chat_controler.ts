@@ -189,13 +189,17 @@ export class Chat_controler{
 
             if (!findUser || !findChat)
                 return next(Error_api.notFound())
+
+            let i = 0;
             const existUser = findChat.users.map((chat)=>{
                 if (chat.users.id == parseIdUser)
+                {
+                    i++;
                     return chat.users
+                }
             })
-            console.log(existUser)
             if (
-                existUser.length != 0 ||
+                i != 0 ||
                 findChat.author.id == parseIdUser
             )
                 return next(Error_api.notFound())

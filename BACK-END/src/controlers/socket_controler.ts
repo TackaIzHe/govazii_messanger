@@ -9,16 +9,15 @@ import setCookieParser from "../middleware/socket_io_cookie_parser";
 import { DbContext } from "../database/db";
 import { User } from "../entity/user";
 import { Chat } from "../entity/chat";
+import {MSG, EEventString, EMsgType} from "../../../Heders/interfaces"
+import { Message } from "../entity/message";
 
-enum EEventString {
-    ESendMess     = "send_mess",
-    EWriteMess    = "writeMess",
-    EEndWriteMess = "endWriteMess",
-    EOnlineUser   = "onlineUsers",
-    EReadMess     = "readMess"
+enum EErrorMsg {
+    NotFound = "Error 404",
+    AccessDenie = "Access Error"
 }
-export class Socket_controler {
 
+export class Socket_controler {
     static async setSocket(server: https.Server | http.Server) {
         try {
             const frontEndProto = process.env.FRONT_PROTO || "http"
@@ -43,7 +42,7 @@ export class Socket_controler {
                 
                 const {Session} = req.cookies;
                 this.addOnlineUser(socket.id, Session)
-                this.connectToRooms(socket, Session)
+                this.connectToRooms(socket)
                 
                 socket.on("disconnect", () => {
                     this.delOnlineUser(socket.id, Session)
@@ -105,10 +104,10 @@ export class Socket_controler {
     static async socketEvents(socket:Socket) {
         try {
             let mess: string = ""
-            socket.on("chat message", (msg:EEventString, val:string|number, text:string)=>{
-                switch (msg) {
+            socket.on("chat message", (msg_type:EEventString, msg: MSG)=>{
+                switch (msg_type) {
                     case EEventString.ESendMess:
-                        this.sendMessageForGroup(socket, val, text);
+                        this.sendMessageForGroup(socket, msg);
                         break;
                     case EEventString.EWriteMess:
                         mess = ""
@@ -133,15 +132,14 @@ export class Socket_controler {
         }
     }
 
-    static async connectToRooms(socket:Socket, session:string|undefined) {
-        if (typeof session == "undefined")
-                return;
-        const token = verify_jwt(session)
-        if (typeof token == "undefined")
+    static async connectToRooms(socket:Socket) {
+        const usr_id = await Socket_controler.findUserIdForSocket(socket);
+
+        if (usr_id < 0)
             return;
-        const parseCookie: Cookie_info = token;
+
         const userRepo = DbContext.getRepository(User)
-        const findUser = await userRepo.findOne({where:{id:parseCookie.id}, relations: ["chats","chats.chats", "chat_host"]})
+        const findUser = await userRepo.findOne({where:{id:usr_id}, relations: ["chats","chats.chats", "chat_host"]})
         if (findUser) {
             findUser.chats.map((x)=>{
                 const room = `room-${x.chats.id}`
@@ -149,17 +147,105 @@ export class Socket_controler {
             })
             if (findUser.chat_host)
                 findUser.chat_host.map((x)=>{
-                    console.log(x.id);
                     const room = `room-${x.id}`
                     socket.join(room)
                 })
         }
     }
 
-    static async sendMessageForGroup(socket:Socket, msg:string|number, val:string) {
-        console.log(`room-${msg}`)
-        const room = `room-${msg}`;
-        socket.in(room).emit(room, val)
+    static async findUserIdForSocket(socket: Socket): Promise<number>
+    {
+        let res:number = -1;
+        const req = socket.request;
+        const {Session} = req.cookies;
+
+        if (!Session)
+            return res;
+
+        if (typeof Session == "undefined")
+            return res;
+
+        const token = verify_jwt(Session)
+        if (typeof token == "undefined")
+            return res;
+
+        const parseCookie: Cookie_info = token;
+        const userRepo = DbContext.getRepository(User)
+        const findUser = await userRepo.findOne({where:{id:parseCookie.id}})
+        
+        if (!findUser)
+            return res;
+
+        res = findUser?.id;
+        
+        return res;
+    }
+
+    static async CheckMessageId(msg_id:number, usr_id: number): Promise<number>
+    {
+        let res = -1;
+
+        if (!msg_id || !usr_id)
+            return res;
+
+        const messageRepo = DbContext.getRepository(Message);
+        const userRepo = DbContext.getRepository(User)
+    
+        const findMessage = await messageRepo.findOne({where:{id:msg_id}, relations:['user']})
+        if (!findMessage)
+            return res;
+
+        const findUser = await userRepo.findOne({where:{id:usr_id}})
+        if (!findUser)
+            return res;
+
+        if (findMessage.user.id == usr_id)
+        {
+            res = 0;
+            return res;
+        }
+        else 
+            return res;
+
+    }
+
+    static async sendMessageForGroup(socket:Socket, msg:MSG) {
+        try
+        {
+            if (msg.type == EMsgType.Room)
+            {
+                const usr_id = await Socket_controler.findUserIdForSocket(socket);
+                if (usr_id < 0)
+                {
+                    socket.emit(EErrorMsg.NotFound);
+                    return;
+                }
+
+                const msgAvalibl = await Socket_controler.CheckMessageId(msg.msg_id, usr_id);
+                if (msgAvalibl)
+                {
+                    socket.emit(EErrorMsg.AccessDenie)
+                    return;
+                }
+
+                const room = `room-${msg.room}`;
+                msg.user_id = usr_id;
+                socket.in(room).emit(room, msg)
+                
+                msg.type = EMsgType.Answer;
+                socket.emit("Answer",msg)
+            }
+            else
+            {
+                console.log(msg)
+                socket.emit(EErrorMsg.NotFound);
+            }
+        }
+        catch (e)
+        {
+            socket.emit(EErrorMsg.NotFound);
+            console.log(e)
+        }
     }
 
     static async setReadedMess(messId: number, userId: number) {

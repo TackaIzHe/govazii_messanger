@@ -17,12 +17,18 @@ export class Message_controler{
                 return next(Error_api.badData())
 
             const messageRepo = DbContext.getRepository(Message)
-            const message = await messageRepo.findOne({where:{id:parseId}});
+            const message = await messageRepo.findOne({where:{id:parseId}, relations:['user']});
 
             if (!message)
                 return next(Error_api.notFound())
 
-            res.status(200).json(message)
+            res.status(200).json({
+                id:message.id,
+                value:message.value,
+                userId:message.user.id,
+                userAva:message.user.ava,
+                userName:message.user.name
+            })
         }
         catch (e)
         {
@@ -135,8 +141,8 @@ export class Message_controler{
                     chat:findChat
                 })
             
-            await messageRepo.save(createMessage)
-            res.status(201).json("Сообщение создано")
+            const seved_msg = await messageRepo.save(createMessage)
+            res.status(201).json(`Сообщение создано-${seved_msg.id}`)
         }
         catch (e)
         {
