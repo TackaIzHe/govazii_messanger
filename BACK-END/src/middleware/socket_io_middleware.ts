@@ -1,4 +1,5 @@
 import cookieParser from "cookie-parser"
+import { Server } from "socket.io";
 
 function cp(secret?: string | string[], options?: cookieParser.CookieParseOptions) {
   var parser:any = cookieParser(secret, options)
@@ -8,7 +9,8 @@ function cp(secret?: string | string[], options?: cookieParser.CookieParseOption
   }
 };
 
-function setCookieParser(server:any) {
+function setCookieParser(server:Server) {
     server.use(cp())
-} 
+}
+
 export default setCookieParser

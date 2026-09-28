@@ -51,7 +51,17 @@ export class User{
     @Column({
         default: ""
     })
-    socketId!: string
+    socketMsgId!: string
+
+    @Column({
+        default: ""
+    })
+    socketVoiceId!: string
+
+    @Column({
+        default: ""
+    })
+    socketVideoId!: string
 
     @Column({
         default:false

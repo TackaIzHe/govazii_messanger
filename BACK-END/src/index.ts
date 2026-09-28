@@ -9,15 +9,18 @@ import https from "https"
 import path from "path";
 import cors from "cors"
 import { Socket_controler } from "./controlers/socket_controler";
+import { ESocketType } from "../../Heders/interfaces";
 
 ENV.config({path: __dirname + "/../.env"})
 
 const app = Express();
-const port = process.env.PORT || 20000;
+const proto = process.env.PROTO || "http";
+const host =  process.env.HOST || "localhost";
+const port =  process.env.PORT || 20000;
 
 const frontEndProto = process.env.FRONT_PROTO || "http"
-const frontEndHost = process.env.FRONT_HOST || "localhost"
-const frontEndPort = process.env.FRONT_PORT || 45000
+const frontEndHost =  process.env.FRONT_HOST || "localhost"
+const frontEndPort =  process.env.FRONT_PORT || 45000
 
 app.use(Express.json());
 app.use(cookieParser())
@@ -48,16 +51,16 @@ DbContext.initialize()
         }, app)
         
         const server = httpsServer.listen(port, ()=>{
-            console.log(`https://localhost:${port}`)
+            console.log(`${proto}://${host}:${port}`)
         })
 
-        Socket_controler.setSocket(server);
+        Socket_controler.setSocket(server, frontEndHost, frontEndProto, Number(frontEndPort), ESocketType.Msg);
     }
     else{
         const server = app.listen(port,()=>{
-            console.log(`http://localhost:${port}`)
+            console.log(`${proto}://${host}:${port}`)
         })
         
-        Socket_controler.setSocket(server);
+        Socket_controler.setSocket(server, frontEndHost, frontEndProto, Number(frontEndPort), ESocketType.Msg);
     }
 })
