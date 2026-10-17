@@ -4,7 +4,7 @@ import axios from "axios";
 import ListMessage, { MessageProps } from "./ListMessage";
 import { DialogList, GetChatList } from "./types/IChat";
 import { Socket } from "socket.io-client";
-import {MSG, EEventString, EMsgType} from "./Headers/interfaces"
+import {MSG, EEventString, EMsgType, ESocketMsgType, SipMsg, ESipConfAct, ECallState} from "./Headers/interfaces"
 
 import styles from "../styles/rightPanel.module.css";
 
@@ -49,7 +49,7 @@ const ChatSpace: FC<ChatSpaceProps> = ({
                 msg: value,
                 room: chatId
             }
-            socket.emit("chat message", EEventString.ESendMess, msg);
+            socket.emit("chat message", ESocketMsgType.Msg, EEventString.ESendMess, msg);
         }
         catch (e) {
             console.log(e)
@@ -63,6 +63,14 @@ const ChatSpace: FC<ChatSpaceProps> = ({
             dialog_ref_array.current[DialogList.Eadd_user_to_chat].close()
     }
 
+    const sig_to_room = (sig: ECallState) => {
+        const msg:SipMsg = {
+            room: chatId,
+            sig: sig
+        } 
+        socket.emit("chat message", ESocketMsgType.Msg, EEventString.ESip, msg);
+    }
+
     return (
         <div className={styles.chat_space}>
             <div className={styles.chat_header}>
@@ -72,6 +80,8 @@ const ChatSpace: FC<ChatSpaceProps> = ({
                     <Logo _className={styles.right} onClickFunc={openSetings}/>
                 </div>
             </div>
+                    <button style={{fontSize:32}} onClick={() => sig_to_room(ECallState.Ring)}>Вызов</button>
+                    <button style={{fontSize:32}} onClick={() => sig_to_room(ECallState.Release)}>Отключится</button>
         
             <div className={styles.chat_message_list}>
                 <ListMessage chatId={chatId} list={messageList} />

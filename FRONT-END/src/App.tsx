@@ -13,7 +13,7 @@ import Logo from './components/Logo';
 import style from "./styles/loginAuthPage.module.css";
 import Form, { Field } from './components/Form';
 import axios from 'axios';
-import { EMsgType, MSG } from './components/Headers/interfaces';
+import { ECallState, EMsgType, MSG, SipMsg } from './components/Headers/interfaces';
 import { getMessageForId } from './components/API/message';
 
 export interface AppProps{
@@ -70,9 +70,21 @@ function App() {
 
   const [invite_usr_id, set_invite_usr_id] = useState<number>(0);
   const [invite_usr_submite,set_invite_usr_submite] = useState<string>("Пригласить в чат");
+
+  const voice_steam = useRef<MediaStream>(null);
+  const video_steam = useRef<MediaStream>(null);
+  const video_ref   = useRef<HTMLVideoElement>(null);
+  const audio_ref   = useRef<HTMLAudioElement>(null);
+  const alert_ref   = useRef<HTMLAudioElement>(null);
+
 // Сдесь вопрос. Будет ли это коректно работать при условии что он обновляется по условию
   useEffect(()=>{
+
+    get_audio_steam()
+    get_video_steam()
+
     set_ref()
+
     socket.on('connect',()=>{
   
       socket.on("disconnect", ()=>{
@@ -80,27 +92,79 @@ function App() {
   
     });
 
-    socket.onAny(async(msg_type, msg:MSG)=>{
-      switch (msg.type)
+    socket.onAny(async(msg_type, msg?:MSG, sig?:ECallState, pack?)=>{
+      if (msg)
       {
-        case EMsgType.Room:
+
+        switch (msg.type)
         {
-          const mess = await getMessageForId(msg.msg_id);
-          if (typeof mess != 'number')
-          chatMessage[1](prevArray=>([...prevArray, mess]))
-          break;
-        }
-        case EMsgType.Answer:
-        {
-          const mess = await getMessageForId(msg.msg_id);
-          if (typeof mess != 'number')
-          chatMessage[1](prevArray=>([...prevArray, mess]))
-          break;
+          case EMsgType.Room:
+          {
+            const mess = await getMessageForId(msg.msg_id);
+            if (typeof mess != 'number')
+              chatMessage[1](prevArray=>([...prevArray, mess]))
+            
+            if (alert_ref.current)
+              alert_ref.current.src = "/sounds/msg_alert.mp3";
+            
+            break;
+          }
+          case EMsgType.Answer:
+          {
+            const mess = await getMessageForId(msg.msg_id);
+            if (typeof mess != 'number')
+              chatMessage[1](prevArray=>([...prevArray, mess]))
+            break;
+          }
         }
       }
-     
-})
+      else if (sig)
+      {
+        switch (sig)
+        {
+          case ECallState.Alert:
+            if (alert_ref.current)
+              alert_ref.current.src = "/sounds/usr_con.mp3";
+            break;
+
+          case ECallState.Release:
+            if (alert_ref.current)
+              alert_ref.current.src = "/sounds/usr_discon.mp3";
+            break;
+        }
+          
+      }
+    })
   },[setState])
+
+  const get_audio_steam = async() => {
+    try{
+      voice_steam.current = await navigator.mediaDevices.getUserMedia({
+        audio: true
+      })
+      if (audio_ref.current)
+        audio_ref.current.srcObject = voice_steam.current
+    }
+    catch(e)
+    {
+      console.log(e)
+    }
+  }
+
+  const get_video_steam = async() => {
+    try{
+      video_steam.current = await navigator.mediaDevices.getUserMedia({
+        video: true
+      })
+      if (video_ref.current)
+        video_ref.current.srcObject = video_steam.current
+    }
+    catch(e)
+    {
+      console.log(e)
+    }
+
+  }
 
   const switchState = () => {
     setState(state == 0 ? 1 : 0)
@@ -199,6 +263,22 @@ function App() {
       {
         Cookie.get('user') ? (
         <div >
+
+        <audio
+          autoPlay
+          ref={alert_ref}>
+        </audio>
+
+        {/* <video
+          ref={video_ref}
+          autoPlay
+          muted>
+        </video> */}
+
+        <audio
+          autoPlay
+          ref={audio_ref}>
+        </audio>
           <Dialog classname='create_chat' ref={create_chat_modal_ref}>
             <div>
               <Form name="chat" width={500} height={100} fields={create_chat_fields} submit={create_chat}/>

@@ -35,10 +35,14 @@ const Login:FC<LoginProps> = ({
             const proto = process.env.REACT_APP_API_PROTO || "http";
             const host = process.env.REACT_APP_API_HOST || "localhost";
             const port = process.env.REACT_APP_API_PORT || "2000";
+
+            console.log(host)
             try{
 
                 const res = await axios.post(`${proto}://${host}:${port}/user/loggin`, sendObj, {withCredentials:true});
+                console.log(res)
                 const resInfo = await axios.get(`${proto}://${host}:${port}/user/get/auth_user`, {withCredentials:true})
+                console.log(resInfo)
                 switchState(2)
             }
             catch(e)
