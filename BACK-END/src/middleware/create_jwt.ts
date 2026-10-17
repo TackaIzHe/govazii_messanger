@@ -19,6 +19,8 @@ export const verify_jwt = (token:string):Jwt_payload | undefined=>{
             'role' in obj
         )
             return new Jwt_payload(obj.id, obj.name, obj.role)
+
+        console.log(obj)
         return undefined
     }
     catch(e)

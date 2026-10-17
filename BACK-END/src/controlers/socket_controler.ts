@@ -1,4 +1,5 @@
 /// <reference path="../types/httpExtend.d.ts" />
+/// <reference path="../types/socketExtend.d.ts" />
 import { Cookie_info } from "../objects/jwt_payload";
 import { User_s_info } from "../objects/socket_obj"
 import https from "https"
@@ -9,14 +10,115 @@ import setCookieParser from "../middleware/socket_io_middleware";
 import { DbContext } from "../database/db";
 import { User } from "../entity/user";
 import { Chat } from "../entity/chat";
-import {MSG, EEventString, EMsgType, ESocketType, ECallState} from "../../../Heders/interfaces"
+import {MSG, EEventString, EMsgType, ESocketMsgType, ECallState, ESocketStreamType, SipMsg} from "../../../Heders/interfaces"
 import { Message } from "../entity/message";
-import { SocketUser } from "../types/socketExtend";
 
 enum EErrorMsg {
     NotFound = "Error 404",
     AccessDenie = "Access Error"
 }
+
+let connections = new Map<string, Socket>()
+// let voiceStreams = new Map<string, Socket>()
+// let videoStreams = new Map<string, Socket>()
+
+/*-------------------------------------------------------------------------------------*/
+
+    function verify_cookie(socket: Socket): void 
+    {
+        try {
+            socket.cookie = undefined;
+
+            if (!socket.request)
+                return
+
+            if (!socket.request.cookies)
+                return
+
+            const { Session } = socket.request.cookies;
+            if (typeof Session == "undefined")
+                return;
+
+            const token = verify_jwt(Session)
+            if (typeof token == "undefined")
+                return;
+
+            const parseCookie: Cookie_info = token;
+            socket.cookie = parseCookie;
+        }
+        catch (e) {
+            console.log(e)
+        }
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    async function get_user(socket: Socket): Promise<User | undefined>
+    {
+        verify_cookie(socket)
+
+        if (socket.cookie === undefined)
+            return 
+
+        return socket.user;
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    async function set_user(socket: Socket): Promise<number>
+    {
+        verify_cookie(socket)
+
+        if (socket.cookie === undefined)
+            return -1;
+
+        const userRepo = DbContext.getRepository(User);
+        const findUser = await userRepo.findOne({ where: { id: socket.cookie.id } })
+
+        if (findUser) {
+            socket.user = findUser;
+            return socket.user.id;
+        }
+        else {
+            socket.user = undefined;
+            return -1;
+        }
+    }
+
+    async function find_user(socket: Socket): Promise<User | undefined>
+    {
+        verify_cookie(socket)
+
+        if (socket.cookie === undefined)
+            return undefined;
+
+        const userRepo = DbContext.getRepository(User);
+        const findUser = await userRepo.findOne({ where: { id: socket.cookie.id } })
+
+        if (findUser) {
+            return findUser;
+        }
+        else {
+            return undefined;
+        }
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    async function set_user_connections(socket: Socket): Promise<number>
+    {
+        const user = await find_user(socket)
+        const userRepo = DbContext.getRepository(User);
+        if (user === undefined)
+            return -1;
+
+        if (connections.get(socket.id))
+            user.socketId = socket.id;
+
+        await userRepo.save(user);
+        return 0;
+    }
+
 
 /*-------------------------------------------------------------------------------------*/
 
@@ -27,8 +129,7 @@ export class Socket_controler {
     static async setSocket(server: https.Server | http.Server,
                            host: string,
                            proto: string,
-                           port: number,
-                           socket_type: number
+                           port: number
     ) {
         try {            
             const io = new Server(server,
@@ -42,25 +143,13 @@ export class Socket_controler {
                 })
 
             setCookieParser(io);
-            io.on('connection', (socket:SocketUser) => {
+
+            io.on('connection', async(socket:Socket) => {
+                socket.call_state = 0;
                 this.socketInitUser(socket);
-                socket.find_user()
-                socket.set_user_connections(socket_type);
-                switch (socket_type)
-                {
-                    case ESocketType.Msg: {
-                        this.socketMsg(socket);
-                        break;
-                    }
-                    case ESocketType.Voice: {
-                        this.socketVoice(socket);
-                        break;
-                    }
-                    case ESocketType.Video: {
-                        this.socketVideo(socket);
-                        break;
-                    }
-                }
+                await find_user(socket)
+                await set_user_connections(socket);
+                this.socketMsg(socket);
             })
         }
         catch (e) {
@@ -70,101 +159,94 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketMsg(socket: SocketUser)
+    static async socketMsg(socket: Socket)
     {
         this.addOnlineUser(socket)
-        this.connectToRooms(socket)
-        socket.connections.set(socket.id, socket);
+        this.connectToMsgRooms(socket)
+        connections.set(socket.id, socket);
         socket.on("disconnect", () => {
-            socket.connections.delete(socket.id);
+            connections.delete(socket.id);
             this.delOnlineUser(socket)
         })
         
-        this.socketEvents(socket)
+        this.socketPack(socket)
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketVoice(socket: SocketUser)
-    {
-        socket.voiceStreams.set(socket.id, socket);
-        
-        socket.on("disconnect", () => {
-            socket.voiceStreams.delete(socket.id);
-        })
-
-        this.socketVoiceEvents(socket)
-    }
-
-/*-------------------------------------------------------------------------------------*/
-
-    static async socketVideo(socket: SocketUser)
-    {
-        socket.videoStreams.set(socket.id, socket);
-        socket.on("disconnect", () => {
-            socket.videoStreams.delete(socket.id);
-        })
-    }
-
-/*-------------------------------------------------------------------------------------*/
-
-    static async socketSetIdle(socket: SocketUser)
+    static async socketSetIdle(socket: Socket)
     {
         socket.call_state = ECallState.Idle;
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketSetAlert(socket: SocketUser)
+    static async socketSetAlert(socket: Socket)
     {
         socket.call_state = ECallState.Alert;
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketSetRing(socket: SocketUser)
+    static async socketSetRing(socket: Socket, callId: number)
     {
-        socket.call_state = ECallState.Ring;
+        if (socket.call_state == ECallState.Ring)
+            return -1;
+
+        if (socket.call_room_id != callId)
+        {
+            socket.call_state = ECallState.Ring;
+            socket.call_room_id = callId;
+            return callId;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketSetAnswer(socket: SocketUser)
+    static async socketSetAnswer(socket: Socket)
     {
         socket.call_state = ECallState.Answer;
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketSetTalk(socket: SocketUser)
+    static async socketSetTalk(socket: Socket)
     {
         socket.call_state = ECallState.Talk;
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketSetRelease(socket: SocketUser)
+    static async socketSetRelease(socket: Socket)
     {
-        socket.call_state = ECallState.Release;
+        if (socket.call_state != ECallState.Release)
+        {
+            socket.call_room_id = -1;
+            socket.call_state = ECallState.Release;
+        }
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketSetDisconnect(socket: SocketUser)
+    static async socketSetDisconnect(socket: Socket)
     {
         socket.call_state = ECallState.Disconnect;
     }
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketInitUser(socket:SocketUser)
+    static async socketInitUser(socket:Socket)
     {
         try {
-            socket.verify_cookie();
+            verify_cookie(socket);
             if (socket.cookie === undefined)
                 return 
 
-            socket.set_user()
+            set_user(socket)
 
         }
         catch (e) {
@@ -179,7 +261,7 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async addOnlineUser(socket: SocketUser)
+    static async addOnlineUser(socket: Socket)
     {
         try {
             if (socket.cookie === undefined)
@@ -192,7 +274,7 @@ export class Socket_controler {
                 return
 
             findUser.isOnline = true
-            findUser.socketMsgId = socket.id;
+            findUser.socketId = socket.id;
             await userRepo.save(findUser);
         }
         catch (e) {
@@ -202,7 +284,7 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async delOnlineUser(socket: SocketUser)
+    static async delOnlineUser(socket: Socket)
     {
         try {
             if (socket.cookie === undefined)
@@ -213,9 +295,7 @@ export class Socket_controler {
 
             if (!findUser)
                 return
-            findUser.socketMsgId = "";
-            findUser.socketVoiceId = "";
-            findUser.socketVideoId = "";
+            findUser.socketId = "";
             findUser.isOnline = false;
             await userRepo.save(findUser)
         }
@@ -226,33 +306,59 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketEvents(socket:SocketUser)
+    static async socketPack(socket: Socket)
+    {
+        socket.on("chat message", (pack_type: ESocketMsgType,
+                                   msg_type:EEventString,
+                                   msg?: MSG | SipMsg,
+                                   voicePack?: MediaStream,
+                                   videoPack?:MediaStream)=>{
+            verify_cookie(socket);
+            switch (pack_type)
+            {
+                case ESocketMsgType.Msg:
+                    this.socketEvents(socket, msg_type, msg);
+                    break;
+                case ESocketMsgType.Video:
+                    if (videoPack)
+                        this.sendCallPackForGroup(socket, videoPack);
+                    // this.socketPackEvents(socket, videoPack, ESocketStreamType.Video);
+                    break;
+                case ESocketMsgType.Voice:
+                    if (voicePack)
+                        this.sendCallPackForGroup(socket, voicePack)
+                    // this.socketPackEvents(socket, voicePack, ESocketStreamType.Voice);
+                    break;
+            }
+        })
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    static async socketEvents(socket:Socket, msg_type:EEventString, msg?: MSG | SipMsg)
     {
         try {
-            let mess: string = ""
-            socket.on("chat message", (msg_type:EEventString, msg: MSG)=>{
-                socket.verify_cookie();
-                switch (msg_type) {
-                    case EEventString.ESendMess:
-                        this.sendMessageForGroup(socket, msg);
-                        break;
-                    case EEventString.EWriteMess:
-                        mess = ""
-                        break;
-                    case EEventString.EEndWriteMess:
-                        mess = ""
-                        break;
-                    case EEventString.EOnlineUser:
-                        mess = ""                        
-                        break;
-                    case EEventString.EReadMess:
-                        mess = ""
-                        break;
-                
-                    default:
-                        break;
-                }
-            })
+            switch (msg_type) {
+                case EEventString.ESendMess:
+                    if (msg)
+                        this.sendMessageForGroup(socket, msg as MSG);
+                    break;
+                case EEventString.EWriteMess:
+                    break;
+                case EEventString.EEndWriteMess:
+                    break;
+                case EEventString.EOnlineUser:
+                    break;
+                case EEventString.EReadMess:
+                    break;
+                case EEventString.ESip:
+                    if (msg)
+                        this.socketCallEvents(socket, msg as SipMsg)
+                    break;
+            
+                default:
+                    break;
+            }
         }
         catch (e) {
             console.log(e)
@@ -261,13 +367,13 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async socketVoiceEvents(socket:SocketUser)
+    static async socketCallEvents(socket: Socket, msg: SipMsg, is_verify = 0)
     {
         try {
-            let mess: string = ""
-            socket.on("chat message", (msg: ECallState)=>{
-                socket.verify_cookie()
-                switch (msg) {
+                if (is_verify)
+                    verify_cookie(socket)
+                
+                switch (msg.sig) {
                     case ECallState.Idle:
                         if (socket.call_state != ECallState.Idle)
                             this.socketSetIdle(socket);
@@ -277,7 +383,11 @@ export class Socket_controler {
                         this.socketSetAlert(socket);
                         break;
                     case ECallState.Ring:
-                        this.socketSetRing(socket);
+                        if (await this.socketSetRing(socket, msg.room) < 0)
+                            break;
+
+                        await this.connectToCallRooms(socket);
+                        this.sendCallSigForGroup(socket, ECallState.Alert);
                         break;
                     case ECallState.Answer:
                         this.socketSetAnswer(socket);
@@ -286,16 +396,21 @@ export class Socket_controler {
                         this.socketSetTalk(socket);
                         break;
                     case ECallState.Release:
-                        this.socketSetRelease(socket);
+                        await this.sendCallSigForGroup(socket, ECallState.Release);
+                        await this.disconnectFromCallRooms(socket);
+                        await this.socketSetRelease(socket);
+                        msg.sig = ECallState.Disconnect;
+                        this.socketCallEvents(socket, msg, 1);
                         break;
                     case ECallState.Disconnect:
                         this.socketSetDisconnect(socket);
+                        msg.sig = ECallState.Idle;
+                        this.socketCallEvents(socket, msg, 1);
                         break;
                 
                     default:
                         break;
-                }
-            })
+            }
         }
         catch (e) {
             console.log(e)
@@ -304,11 +419,11 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async connectToRooms(socket:SocketUser)
+    static async connectToMsgRooms(socket:Socket)
     {
-        const usr = await socket.get_user();
+        const usr = await get_user(socket);
 
-        if (usr.id < 0)
+        if (!usr || usr.id < 0)
             return;
 
         const userRepo = DbContext.getRepository(User)
@@ -328,7 +443,63 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async findUserIdForSocket(socket: SocketUser): Promise<number>
+    static async connectToCallRooms(socket:Socket)
+    {
+        const usr = await get_user(socket);
+        let is_access = false;
+
+        if (!usr || usr.id < 0)
+            return;
+
+        const userRepo = DbContext.getRepository(User)
+        const findUser = await userRepo.findOne({where:{id:usr.id}, relations: ["chats","chats.chats", "chat_host"]})
+        if (findUser) {
+            findUser.chats.map(()=>{
+                is_access = true;
+            })
+            if (findUser.chat_host)
+                findUser.chat_host.map(()=>{
+                    is_access = true;
+                })
+            if (is_access)
+            {
+                const room = `call-room-${socket.call_room_id}`
+                socket.join(room)
+            }
+        }
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    static async disconnectFromCallRooms(socket:Socket)
+    {
+        const usr = await get_user(socket);
+        let is_access = false;
+
+        if (!usr || usr.id < 0)
+            return;
+
+        const userRepo = DbContext.getRepository(User)
+        const findUser = await userRepo.findOne({where:{id:usr.id}, relations: ["chats","chats.chats", "chat_host"]})
+        if (findUser) {
+            findUser.chats.map(()=>{
+                is_access = true;
+            })
+            if (findUser.chat_host)
+                findUser.chat_host.map(()=>{
+                    is_access = true;
+                })
+            if (is_access)
+            {
+                const room = `call-room-${socket.call_room_id}`
+                socket.leave(room)
+            }
+        }
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    static async findUserIdForSocket(socket: Socket): Promise<number>
     {
         let res:number = -1;
         const req = socket.request;
@@ -388,7 +559,7 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async sendMessageForGroup(socket:SocketUser, msg:MSG)
+    static async sendMessageForGroup(socket:Socket, msg:MSG)
     {
         try
         {
@@ -420,6 +591,56 @@ export class Socket_controler {
                 console.log(msg)
                 socket.emit(EErrorMsg.NotFound);
             }
+        }
+        catch (e)
+        {
+            socket.emit(EErrorMsg.NotFound);
+            console.log(e)
+        }
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    static async sendCallPackForGroup(socket:Socket, pack: MediaStream)
+    {
+        try
+        {
+                const usr_id = await Socket_controler.findUserIdForSocket(socket);
+                if (usr_id < 0)
+                {
+                    socket.emit(EErrorMsg.NotFound);
+                    return;
+                }
+
+                const room = `call-room-${socket.call_room_id}`;
+                socket.in(room).emit(room, null, null, pack)
+
+                // socket.emit("Answer",pack, "ok")
+            
+            
+        }
+        catch (e)
+        {
+            socket.emit(EErrorMsg.NotFound);
+            console.log(e)
+        }
+    }
+
+/*-------------------------------------------------------------------------------------*/
+
+    static async sendCallSigForGroup(socket:Socket, sig: ECallState)
+    {
+        try
+        {
+                const usr_id = await Socket_controler.findUserIdForSocket(socket);
+                if (usr_id < 0)
+                {
+                    socket.emit(EErrorMsg.NotFound);
+                    return;
+                }
+
+                const room = `call-room-${socket.call_room_id}`;
+                socket.in(room).emit(room, null, sig)
         }
         catch (e)
         {

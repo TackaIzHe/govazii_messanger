@@ -8,140 +8,150 @@ import {ESocketType} from "../../../Heders/interfaces"
 
 declare module "socket.io" {
     interface Socket {
-        static connections: Map<string, Socket>
-        static voiceStreams: Map<string, Socket>
-        static videoStreams: Map<string, Socket>
-        call_state: numbet;
+        // static connections: Map<string, Socket>
+        // static voiceStreams: Map<string, Socket>
+        // static videoStreams: Map<string, Socket>
+        call_state: number;
         user: User | undefined;
         cookie: Cookie_info | undefined;
+        call_room: string;
+        call_room_id: number;
 
 
-        async get_user(): Promise<User>;
-        async set_user(): Promise<number>;
-        async set_connect(): Promise<number>;
-        async get_connect(): Promise<string>;
-        async find_user(): Promise<User>;
-        async set_user_connections(connection_type: ESocketType): Promise<number>
-        verify_cookie(): void;
+        // async get_user(): Promise<User | undefined>;
+        // async set_user(): Promise<number>;
+        // async set_connect(): Promise<number>;
+        // async get_connect(): Promise<string>;
+        // async find_user(): Promise<User | undefined>;
+        // async set_user_connections(connection_type: ESocketType): Promise<number>
+        // verify_cookie(): void;
 
     }
 }
 
 /*-------------------------------------------------------------------------------------*/
 
-export class SocketUser extends Socket {
+// export class SocketUser extends Socket {
 
-/*-------------------------------------------------------------------------------------*/
+// /*-------------------------------------------------------------------------------------*/
 
-    verify_cookie(): void 
-    {
-        try {
-            this.cookie = undefined;
+//     constructor(socket: Socket)
+//     {
+//         super();
+//         this = socket;
+//     }
 
-            if (!this.request)
-                return
+// /*-------------------------------------------------------------------------------------*/
 
-            if (!this.request.cookies)
-                return
+//     verify_cookie(): void 
+//     {
+//         try {
+//             this.cookie = undefined;
 
-            const { Session } = this.request.cookies;
-            if (typeof Session == "undefined")
-                return;
+//             if (!this.request)
+//                 return
 
-            const token = verify_jwt(Session)
-            if (typeof token == "undefined")
-                return;
+//             if (!this.request.cookies)
+//                 return
 
-            const parseCookie: Cookie_info = token;
-            this.cookie = parseCookie;
-        }
-        catch (e) {
-            console.log(e)
-        }
-    }
+//             const { Session } = this.request.cookies;
+//             if (typeof Session == "undefined")
+//                 return;
 
-/*-------------------------------------------------------------------------------------*/
+//             const token = verify_jwt(Session)
+//             if (typeof token == "undefined")
+//                 return;
 
-    async get_user(): Promise<User>
-    {
-        this.verify_cookie()
+//             const parseCookie: Cookie_info = token;
+//             this.cookie = parseCookie;
+//         }
+//         catch (e) {
+//             console.log(e)
+//         }
+//     }
 
-        if (this.cookie === undefined)
-            return
+// /*-------------------------------------------------------------------------------------*/
 
-        return this.user;
-    }
+//     async get_user(): Promise<User>
+//     {
+//         this.verify_cookie()
 
-/*-------------------------------------------------------------------------------------*/
+//         if (this.cookie === undefined)
+//             return
 
-    async set_user(): Promise<number>
-    {
-        this.verify_cookie()
+//         return this.user;
+//     }
 
-        if (this.cookie === undefined)
-            return -1;
+// /*-------------------------------------------------------------------------------------*/
 
-        const userRepo = DbContext.getRepository(User);
-        const findUser = await userRepo.findOne({ where: { id: this.cookie.id } })
+//     async set_user(): Promise<number>
+//     {
+//         this.verify_cookie()
 
-        if (findUser) {
-            this.user = findUser;
-            return this.user.id;
-        }
-        else {
-            this.user = undefined;
-            return -1;
-        }
-    }
+//         if (this.cookie === undefined)
+//             return -1;
 
-    async find_user(): Promise<User>
-    {
-        this.verify_cookie()
+//         const userRepo = DbContext.getRepository(User);
+//         const findUser = await userRepo.findOne({ where: { id: this.cookie.id } })
 
-        if (this.cookie === undefined)
-            return undefined;
+//         if (findUser) {
+//             this.user = findUser;
+//             return this.user.id;
+//         }
+//         else {
+//             this.user = undefined;
+//             return -1;
+//         }
+//     }
 
-        const userRepo = DbContext.getRepository(User);
-        const findUser = await userRepo.findOne({ where: { id: this.cookie.id } })
+//     async find_user(): Promise<User>
+//     {
+//         this.verify_cookie()
 
-        if (findUser) {
-            return findUser;
-        }
-        else {
-            return undefined;
-        }
-    }
+//         if (this.cookie === undefined)
+//             return undefined;
 
-/*-------------------------------------------------------------------------------------*/
+//         const userRepo = DbContext.getRepository(User);
+//         const findUser = await userRepo.findOne({ where: { id: this.cookie.id } })
 
-    async set_user_connections(connection_type: ESocketType): Promise<number>
-    {
-        const user = await this.find_user()
-        const userRepo = DbContext.getRepository(User);
-        if (user === undefined)
-            return -1;
+//         if (findUser) {
+//             return findUser;
+//         }
+//         else {
+//             return undefined;
+//         }
+//     }
 
-        switch (connection_type)
-        {
-            case ESocketType.Msg:
-                user.socketMsgId = this.connections.get(this.id);
-                break;
+// /*-------------------------------------------------------------------------------------*/
 
-            case ESocketType.Voice:
-                user.socketVoiceId = this.voiceStreams.get(this.id);
-                break;
+//     async set_user_connections(connection_type: ESocketType): Promise<number>
+//     {
+//         const user = await this.find_user()
+//         const userRepo = DbContext.getRepository(User);
+//         if (user === undefined)
+//             return -1;
 
-            case ESocketType.Video:
-                user.socketVideoId = this.videoStreams.get(this.id);
-                break;
-        }
+//         switch (connection_type)
+//         {
+//             case ESocketType.Msg:
+//                 user.socketMsgId = this.connections.get(this.id);
+//                 break;
 
-        await userRepo.save(user);
-        return 0;
-    }
+//             case ESocketType.Voice:
+//                 user.socketVoiceId = this.voiceStreams.get(this.id);
+//                 break;
 
-/*-------------------------------------------------------------------------------------*/
+//             case ESocketType.Video:
+//                 user.socketVideoId = this.videoStreams.get(this.id);
+//                 break;
+//         }
 
-}
+//         await userRepo.save(user);
+//         return 0;
+//     }
 
-/*-------------------------------------------------------------------------------------*/
+// /*-------------------------------------------------------------------------------------*/
+
+// }
+
+// /*-------------------------------------------------------------------------------------*/

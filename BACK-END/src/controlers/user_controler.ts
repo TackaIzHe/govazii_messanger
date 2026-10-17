@@ -5,6 +5,7 @@ import { User } from "../entity/user";
 import { compare, crypt } from "../middleware/bcrypt";
 import { create_jwt, verify_jwt } from "../middleware/create_jwt";
 import { Jwt_payload } from "../objects/jwt_payload";
+import { cookie_options } from "..";
 
 
 
@@ -222,13 +223,7 @@ export class User_controler{
 
             res.cookie("Session", create_jwt(
                 new Jwt_payload(findUser.id, findUser.name, findUser.role)), 
-                {
-                    httpOnly:true,
-                    secure:true,
-                    sameSite:'lax',
-                    maxAge: 1000 * 60 * 60 * 2,
-                    path:"/"
-                }).status(200).json("Авторизован")
+                cookie_options).status(200).json("Авторизован")
         }
         catch (e)
         {
@@ -241,6 +236,7 @@ export class User_controler{
     static async getAuthInfoAc(req:Request, res:Response, next:NextFunction){
         try{
             const {Session} = req.cookies
+            console.log(Session)
             const verifyToken = verify_jwt(Session)
 
             if (
