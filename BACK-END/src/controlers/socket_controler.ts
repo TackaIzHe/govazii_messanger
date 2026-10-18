@@ -10,7 +10,7 @@ import setCookieParser from "../middleware/socket_io_middleware";
 import { DbContext } from "../database/db";
 import { User } from "../entity/user";
 import { Chat } from "../entity/chat";
-import {MSG, EEventString, EMsgType, ESocketMsgType, ECallState, ESocketStreamType, SipMsg} from "../../../Heders/interfaces"
+import {MSG, EEventString, EMsgType, ESocketMsgType, ECallState, ESocketStreamType, SipMsg, AudioOptions} from "../../../Heders/interfaces"
 import { Message } from "../entity/message";
 
 enum EErrorMsg {
@@ -311,8 +311,8 @@ export class Socket_controler {
         socket.on("chat message", (pack_type: ESocketMsgType,
                                    msg_type:EEventString,
                                    msg?: MSG | SipMsg,
-                                   voicePack?: MediaStream,
-                                   videoPack?:MediaStream)=>{
+                                   voicePack?: ArrayBuffer,
+                                   videoPack?: ArrayBuffer)=>{
             verify_cookie(socket);
             switch (pack_type)
             {
@@ -390,10 +390,19 @@ export class Socket_controler {
                         this.sendCallSigForGroup(socket, ECallState.Alert);
                         break;
                     case ECallState.Answer:
-                        this.socketSetAnswer(socket);
+                        await this.socketSetAnswer(socket);
+                        msg.sig = ECallState.Talk;
+                        this.socketCallEvents(socket, msg, 1);
                         break;
                     case ECallState.Talk:
-                        this.socketSetTalk(socket);
+                        await this.socketSetTalk(socket);
+
+                        const options:AudioOptions = {
+                            mimeType: 'audio/webm; codecs=opus', 
+                            audioBitsPerSecond: 64000 
+                        };
+
+                        await this.sendCallSigForGroup(socket, ECallState.Talk, options);
                         break;
                     case ECallState.Release:
                         await this.sendCallSigForGroup(socket, ECallState.Release);
@@ -601,7 +610,7 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async sendCallPackForGroup(socket:Socket, pack: MediaStream)
+    static async sendCallPackForGroup(socket:Socket, pack: ArrayBuffer)
     {
         try
         {
@@ -611,6 +620,9 @@ export class Socket_controler {
                     socket.emit(EErrorMsg.NotFound);
                     return;
                 }
+
+                console.log(123)
+                console.log(pack)
 
                 const room = `call-room-${socket.call_room_id}`;
                 socket.in(room).emit(room, null, null, pack)
@@ -628,7 +640,7 @@ export class Socket_controler {
 
 /*-------------------------------------------------------------------------------------*/
 
-    static async sendCallSigForGroup(socket:Socket, sig: ECallState)
+    static async sendCallSigForGroup(socket:Socket, sig: ECallState, audioOptions?:AudioOptions)
     {
         try
         {
@@ -640,7 +652,7 @@ export class Socket_controler {
                 }
 
                 const room = `call-room-${socket.call_room_id}`;
-                socket.in(room).emit(room, null, sig)
+                socket.in(room).emit(room, null, sig, null, audioOptions)
         }
         catch (e)
         {
