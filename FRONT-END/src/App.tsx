@@ -13,8 +13,9 @@ import Logo from './components/Logo';
 import style from "./styles/loginAuthPage.module.css";
 import Form, { Field } from './components/Form';
 import axios from 'axios';
-import { ECallState, EMsgType, MSG, SipMsg } from './components/Headers/interfaces';
+import { AudioOptions, ECallState, EEventString, EMsgType, ESocketMsgType, MSG, SipMsg } from './components/Headers/interfaces';
 import { getMessageForId } from './components/API/message';
+import { send_pack_to_room, sig_to_room } from './components/API/socket';
 
 export interface AppProps{
   createChat: [number, React.Dispatch<React.SetStateAction<number>>]
@@ -76,6 +77,54 @@ function App() {
   const video_ref   = useRef<HTMLVideoElement>(null);
   const audio_ref   = useRef<HTMLAudioElement>(null);
   const alert_ref   = useRef<HTMLAudioElement>(null);
+  // const [audio_options, set_audio_options] = useState<AudioOptions>()
+  
+  
+  const audio_options:AudioOptions = {
+    mimeType: 'audio/webm; codecs=opus',
+    audioBitsPerSecond: 64000
+  }
+
+  // const mediaSource = new MediaSource()
+  // let sourceBuffer
+
+  
+  const talk_loop = (roomId:number) => {
+    let audioPacks = new Array<Blob>();
+    let is_first_audio_pack = 0;
+    let first_audio_pack = new Blob();
+    if (voice_steam.current)
+    {
+      const media_record = new MediaRecorder(voice_steam.current, audio_options)
+      // console.log(media_record)
+      media_record.ondataavailable = async(event)=>{
+        if (event.data.size > 0)
+        {
+          if (!(is_first_audio_pack))
+            { 
+            console.log(event.data)
+            is_first_audio_pack = 1
+            first_audio_pack = event.data;
+            return;
+          }
+          audioPacks.push(event.data)
+
+          if (audioPacks.length > 4)
+          {
+            if (audio_options)
+            {
+
+              console.log(audio_options.mimeType)
+              const pack = new Blob([first_audio_pack, ...audioPacks], {type: audio_options.mimeType})
+              send_pack_to_room(socket, roomId, await pack.arrayBuffer())
+              audioPacks = new Array<Blob>();
+            }
+          }
+        }
+      }
+      media_record.start(1000)
+    }
+  }
 
 // Сдесь вопрос. Будет ли это коректно работать при условии что он обновляется по условию
   useEffect(()=>{
@@ -92,7 +141,7 @@ function App() {
   
     });
 
-    socket.onAny(async(msg_type, msg?:MSG, sig?:ECallState, pack?)=>{
+    socket.onAny(async(msg_type:string, msg?:MSG, sig?:ECallState, pack?:ArrayBuffer, audioOptions?:AudioOptions)=>{
       if (msg)
       {
 
@@ -125,14 +174,48 @@ function App() {
           case ECallState.Alert:
             if (alert_ref.current)
               alert_ref.current.src = "/sounds/usr_con.mp3";
+            const roomId = Number(msg_type.split("-")[2]);
+            sig_to_room(socket, roomId, ECallState.Answer);
+            break;
+
+          case ECallState.Talk:
+            if (audioOptions)
+            {
+              console.log(audioOptions)
+              audio_options.mimeType = audioOptions.mimeType
+              audio_options.audioBitsPerSecond = audioOptions.audioBitsPerSecond
+              // set_audio_options(audioOptions);
+              console.log(audio_options)
+              talk_loop(Number(msg_type.split("-")[2]));
+            }
+            
             break;
 
           case ECallState.Release:
             if (alert_ref.current)
               alert_ref.current.src = "/sounds/usr_discon.mp3";
             break;
+        }   
+      }
+      else if (pack)
+      {
+        if (audio_ref.current)
+        {
+          if (audio_options)
+          {
+            //.addSourceBuffer(audio_options.mimeType);
+            // console.log(mediaSource)
+            // if (mediaSource.readyState == "open")
+            // {
+            //   sourceBuffer = mediaSource.addSourceBuffer(audio_options.mimeType);
+            //   sourceBuffer.appendBuffer(pack)
+            // }
+            const convert_pack = new Blob([pack], {type: audio_options.mimeType})
+            console.log(pack)
+            audio_ref.current.src = URL.createObjectURL(convert_pack)  
+          }
+          console.log(123)
         }
-          
       }
     })
   },[setState])
@@ -142,8 +225,10 @@ function App() {
       voice_steam.current = await navigator.mediaDevices.getUserMedia({
         audio: true
       })
-      if (audio_ref.current)
-        audio_ref.current.srcObject = voice_steam.current
+
+      // if (audio_ref.current)
+      //   audio_ref.current.src = URL.createObjectURL(mediaSource);
+        //   audio_ref.current.srcObject = voice_steam.current
     }
     catch(e)
     {
@@ -258,6 +343,10 @@ function App() {
       }
     }
   
+    const remove_tmp_url = (e:React.SyntheticEvent<HTMLAudioElement, Event>) => {
+      URL.revokeObjectURL(e.currentTarget.src)
+    }
+
   return (
     <div>
       {
@@ -269,11 +358,11 @@ function App() {
           ref={alert_ref}>
         </audio>
 
-        {/* <video
+        <video
           ref={video_ref}
           autoPlay
           muted>
-        </video> */}
+        </video>
 
         <audio
           autoPlay

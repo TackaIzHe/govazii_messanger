@@ -54,3 +54,8 @@ export enum EEventString {
     EReadMess     = "readMess",
     ESip          = "sip"
 }
+
+export interface AudioOptions {
+    mimeType: string,
+    audioBitsPerSecond: number
+}

@@ -26,7 +26,11 @@
     "start": "react-scripts start .env",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "init-cert-for-https": "mkdir cert && npm run init-key && npm run init-csr && npm run init-cert",
+    "init-key": "openssl genrsa -out ./cert/key.pem",
+    "init-csr": "openssl req -new -key ./cert/key.pem -out ./cert/csr.pem",
+    "init-cert": "openssl x509 -req -days 365 -in ./cert/csr.pem -signkey ./cert/key.pem -out ./cert/cert.pem"
   },
   "eslintConfig": {
     "extends": [
