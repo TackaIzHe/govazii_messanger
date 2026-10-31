@@ -67,7 +67,8 @@ DbContext.initialize()
     if (
         fs.existsSync(path.join(__dirname, "../cert", "key.pem")) &&
         fs.existsSync(path.join(__dirname, "../cert", "csr.pem")) &&
-        fs.existsSync(path.join(__dirname, "../cert", "cert.pem"))
+        fs.existsSync(path.join(__dirname, "../cert", "cert.pem")) &&
+        proto == "https"
     )
     {
         const httpsServer = https.createServer({
